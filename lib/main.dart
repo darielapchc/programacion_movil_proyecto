@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -6,37 +7,16 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
- @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return MaterialApp(
-      title:'LNE Stock',
       debugShowCheckedModeBanner: false,
+      title: "LNE Stock",
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorSchemeSeed: Colors.indigo,
+        useMaterial3: true,
       ),
-      home:const HomePage(),
+      home: const HomeScreen(),
     );
   }
 }
 
-class HomePage extends StatelessWidget{
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      appBar:AppBar(
-        title: const Text('LNE Stock'),
-      ),
-      body: const Center(
-        child: Text(
-          "Bienvenido al sistema de inventario de Libreria y Novedades Emanuel",
-          textAlign: TextAlign.center,
-          style:TextStyle(
-            fontSize:20,
-          )
-        )
-      )
-    );
-  }
-}
