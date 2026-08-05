@@ -1,69 +1,95 @@
 import 'package:flutter/material.dart';
-import 'menu_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatelessWidget{
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      backgroundColor: Colors.indigo,
-
+      backgroundColor: const Color(0xFFF8F5F0),
       body: Center(
-        child: Column(
-
-          mainAxisAlignment: MainAxisAlignment.center,
-
-          children: [
-
-            const Icon(
-              Icons.inventory_2,
-              size: 120,
-              color: Colors.white,
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "LNE STOCK",
-              style: TextStyle(
-                fontSize: 34,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+        child: Padding(
+          padding: const EdgeInsets.all(30), 
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children:[ 
+              //Logo 
+              Image.asset(
+                'assets/images/logo.png',
+                width:150,
+                height:100,
               ),
-            ),
+              SizedBox(height: 25),
 
-            const SizedBox(height: 10),
-
-            const Text(
-              "Sistema de Inventario",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 18,
+              Text(
+                "LNE Stock", 
+                style: TextStyle(
+                  fontSize: 36, 
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF8B5E00),
+                ),
               ),
-            ),
+              SizedBox(height: 10),
+              Text(
+                "Control de Inventario",
+                style: TextStyle(
+                  fontSize:22,
+                  letterSpacing: 2,
+                ),
+              ),
+              SizedBox(height: 35),
 
-            const SizedBox(height: 40),
+              Text(
+                "Inventario de Libreria Y Novedades Emanuel", 
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize:16,
+                  color: Colors.black54,
+                ),
+              ),
+              SizedBox(height: 50),
+              SizedBox(
+                width: double.infinity,
+                height:50, 
+                child: ElevatedButton(
+                  onPressed: () {
 
-            ElevatedButton(
-
-              onPressed: () {
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const MenuScreen(),
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF8B5E00),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
-                );
+                  child: Text(
+                    "Ingresar", 
+                    style: TextStyle(
+                      fontSize:18,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.verified_user,
+                  color: Colors.blueGrey
+                  ),
+                  SizedBox(width: 8), 
 
-              },
+                  Text(
+                    "Solo personal autorizado",
+                    style: TextStyle(
+                      color: Colors.blueGrey,
+                    ),
+                    ),
 
-              child: const Text("Ingresar"),
-
-            )
-
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
