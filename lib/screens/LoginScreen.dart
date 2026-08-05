@@ -58,19 +58,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
             child: Form(
               key: _formKey,
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-
                   const Icon(
                     Icons.inventory_2,
                     size: 100,
                     color: Color(0xFF8B5E00),
                   ),
-
                   const SizedBox(height: 20),
-
                   const Text(
                     "Bienvenido",
                     textAlign: TextAlign.center,
@@ -79,9 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   const Text(
                     "LNE Stock",
                     textAlign: TextAlign.center,
@@ -90,34 +84,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.grey,
                     ),
                   ),
-
                   const SizedBox(height: 40),
-
                   campoTexto(
                     label: "Usuario",
                     icono: Icons.person,
                     controlador: usuarioController, 
                     esPassword: false,
                   ),
-
                   const SizedBox(height: 20),
-
                   campoTexto(
                     label: "Contraseña",
                     icono: Icons.lock,
                     controlador: passwordController,
                     esPassword: true,
                   ),
-
                   const SizedBox(height: 35),
-
                   botonPrincipal(
                     texto: "Ingresar",
                     onPressed: iniciarSesion,
                   ),
-
                   const SizedBox(height: 25),
-
                   const Text(
                     "Solo personal autorizado",
                     textAlign: TextAlign.center,

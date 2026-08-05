@@ -6,6 +6,7 @@ class campoTexto extends StatelessWidget {
   final IconData icono; 
   final bool esPassword; 
   final TextEditingController controlador; 
+  
 
   const campoTexto({
     super.key, 
