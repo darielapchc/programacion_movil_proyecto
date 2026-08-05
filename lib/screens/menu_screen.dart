@@ -11,7 +11,7 @@ class MenuScreen extends StatelessWidget {
           appBar: AppBar(
           title: const Text("LNE Stock"),
           centerTitle: true,
-          backgroundColor: const Color(0xFF8B5E3C),
+          backgroundColor:  const Color(0xFF8B5E00),
           foregroundColor: Colors.white,
         ),
         body: Padding(
