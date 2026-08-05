@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inventario_application_1/screens/LoginScreen.dart';
 
 class HomeScreen extends StatelessWidget{
   const HomeScreen({super.key});
@@ -53,7 +54,11 @@ class HomeScreen extends StatelessWidget{
                 height:50, 
                 child: ElevatedButton(
                   onPressed: () {
-
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (context) => LoginScreen()
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF8B5E00),
@@ -78,14 +83,12 @@ class HomeScreen extends StatelessWidget{
                   color: Colors.blueGrey
                   ),
                   SizedBox(width: 8), 
-
                   Text(
                     "Solo personal autorizado",
                     style: TextStyle(
                       color: Colors.blueGrey,
                     ),
                     ),
-
                 ],
               ),
             ],
