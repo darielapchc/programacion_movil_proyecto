@@ -1,148 +1,169 @@
 import 'package:flutter/material.dart';
+import '../widgets/campoTexto.dart';
+import '../widgets/botonPrincipal.dart';
 
 class AgregarProductoScreen extends StatefulWidget {
   const AgregarProductoScreen({super.key});
 
   @override
-  State<AgregarProductoScreen> createState() =>
-      _AgregarProductoScreenState();
+  State<AgregarProductoScreen> createState() => _AgregarProductoScreenState();
 }
 
-class _AgregarProductoScreenState
-    extends State<AgregarProductoScreen> {
+class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
 
-  int cantidad = 1;
+  final _formKey = GlobalKey<FormState>();
 
-  List<String> productos = [];
+  final nombreController = TextEditingController();
+  final codigoController = TextEditingController();
+  final precioController = TextEditingController();
+  final cantidadController = TextEditingController();
+
+  String? categoriaSeleccionada;
+
+  final List<String> categorias = [
+    "Cuadernos",
+    "Papelería",
+    "Lápices",
+    "Arte",
+    "Oficina",
+    "Tecnología",
+  ];
+
+  @override
+  void dispose() {
+    nombreController.dispose();
+    codigoController.dispose();
+    precioController.dispose();
+    cantidadController.dispose();
+    super.dispose();
+  }
+
+  void guardarProducto() {
+    if (_formKey.currentState!.validate()) {
+      if (categoriaSeleccionada == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Seleccione una categoría"),
+          ),
+        );
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Producto agregado correctamente"),
+        ),
+      );
+      Navigator.pop(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
+      backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
         title: const Text("Agregar Producto"),
+        backgroundColor: const Color(0xFF8B5E3C),
+        foregroundColor: Colors.white,
       ),
-
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-
-        child: Column(
-
-          crossAxisAlignment: CrossAxisAlignment.start,
-
-          children: [
-
-            const TextField(
-              decoration: InputDecoration(
-                labelText: "Nombre del producto",
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Cantidad",
-              style: TextStyle(fontSize: 18),
-            ),
-
-            Row(
-
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
               children: [
-
-                IconButton(
-                  icon: const Icon(Icons.remove),
-
-                  onPressed: () {
-
-                    setState(() {
-
-                      if (cantidad > 1) {
-                        cantidad--;
-                      }
-
-                    });
-
-                  },
-                ),
-
-                Text(
-                  "$cantidad",
-                  style: const TextStyle(
-                    fontSize: 22,
+                const CircleAvatar(
+                  radius: 55,
+                  backgroundColor: Color(0xFFEADBC8),
+                  child: Icon(
+                    Icons.add_photo_alternate,
+                    size: 45,
+                    color: Color(0xFF8B5E3C),
                   ),
                 ),
-
-                IconButton(
-                  icon: const Icon(Icons.add),
-
-                  onPressed: () {
-
-                    setState(() {
-
-                      cantidad++;
-
-                    });
-
+                const SizedBox(height: 30),
+                CampoTexto(
+                  label: "Nombre",
+                  icono: Icons.inventory,
+                  controlador: nombreController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Ingrese el nombre";
+                    }
+                    return null;
                   },
                 ),
 
+                const SizedBox(height: 20),
+
+                CampoTexto(
+                  label: "Código",
+                  icono: Icons.qr_code,
+                  controlador: codigoController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Ingrese el código";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  value: categoriaSeleccionada,
+                  decoration: InputDecoration(
+                    labelText: "Categoría",
+                    prefixIcon: const Icon(Icons.category),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  items: categorias.map((categoria) {
+                    return DropdownMenuItem(
+                      value: categoria,
+                      child: Text(categoria),
+                    );
+                  }).toList(),
+                  onChanged: (valor) {
+                    setState(() {
+                      categoriaSeleccionada = valor;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20),
+                CampoTexto(
+                  label: "Precio",
+                  icono: Icons.attach_money,
+                  controlador: precioController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Ingrese el precio";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                CampoTexto(
+                  label: "Cantidad",
+                  icono: Icons.numbers,
+                  controlador: cantidadController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Ingrese la cantidad";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 35),
+                botonPrincipal(
+                  texto: "Guardar Producto",
+                  onPressed: guardarProducto,
+                ),
               ],
             ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-
-              onPressed: () {
-
-                setState(() {
-
-                  productos.add(
-                      "Producto ${productos.length + 1}");
-
-                });
-
-              },
-
-              child: const Text("Guardar Producto"),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Productos Agregados",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            Expanded(
-
-              child: ListView.builder(
-
-                itemCount: productos.length,
-
-                itemBuilder: (context, index) {
-
-                  return ListTile(
-
-                    leading: const Icon(Icons.inventory),
-
-                    title: Text(productos[index]),
-
-                  );
-
-                },
-
-              ),
-
-            )
-
-          ],
+          ),
         ),
       ),
     );
   }
 }
-

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_application_1/widgets/menu_card.dart';
+import 'package:inventario_application_1/screens/detalle_producto_screen.dart';
+import 'package:inventario_application_1/screens/agregar_producto_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -54,7 +56,7 @@ class MenuScreen extends StatelessWidget {
           icono: Icons.shopping_bag,
           color: Colors.blue,
           onTap: (){
-
+            
           },
         ),
         MenuCard(
@@ -70,23 +72,19 @@ class MenuScreen extends StatelessWidget {
           icono: Icons.add_circle,
           color: Colors.orange,
           onTap: (){
-
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AgregarProductoScreen()),
+              );
       },
     ),
-
     ],
-
 ),
-
 ),
-
 ],
-
 ),
-
 ),
-
 );
-
 }
 }

@@ -1,111 +1,121 @@
 import 'package:flutter/material.dart';
+import '../models/producto.dart';
 
-class DetalleProductoScreen extends StatefulWidget {
-  const DetalleProductoScreen({super.key});
+class DetalleProductoScreen extends StatelessWidget {
 
-  @override
-  State<DetalleProductoScreen> createState() =>
-      _DetalleProductoScreenState();
-}
+  final Producto producto;
 
-class _DetalleProductoScreenState
-    extends State<DetalleProductoScreen> {
-
-  bool mostrarInfo = false;
-  bool disponible = true;
+  const DetalleProductoScreen({
+    super.key,
+    required this.producto,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
         title: const Text("Detalle del Producto"),
+        backgroundColor: const Color(0xFF8B5E3C),
+        foregroundColor: Colors.white,
       ),
-
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
-
-            const Icon(
-              Icons.inventory_2,
-              size: 120,
-              color: Colors.indigo,
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Cuaderno Norma",
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
+            const CircleAvatar(
+              radius: 70,
+              backgroundColor: Color(0xFFEADBC8),
+              child: Icon(
+                Icons.inventory_2,
+                size: 70,
+                color: Color(0xFF8B5E3C),
               ),
             ),
-
-            const SizedBox(height: 15),
-
-            Container(
-              padding: const EdgeInsets.all(10),
-
-              decoration: BoxDecoration(
-                color:
-                    disponible ? Colors.green : Colors.red,
-                borderRadius: BorderRadius.circular(10),
+            const SizedBox(height: 30),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-
-              child: Text(
-                disponible ? "Disponible" : "Agotado",
-                style: const TextStyle(
-                  color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    datoProducto(
+                      "Nombre",
+                      producto.nombre,
+                    ),
+                    datoProducto(
+                      "Código",
+                      producto.codigo,
+                    ),
+                    datoProducto(
+                      "Categoría",
+                      producto.categoria,
+                    ),
+                    datoProducto(
+                      "Precio",
+                      "L ${producto.precio.toStringAsFixed(2)}",
+                    ),
+                    datoProducto(
+                      "Cantidad",
+                      producto.cantidad.toString(),
+                    ),
+                  ],
                 ),
               ),
             ),
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
 
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-
-              onPressed: () {
-                setState(() {
-                  mostrarInfo = !mostrarInfo;
-                });
-              },
-
-              child: Text(
-                mostrarInfo
-                    ? "Ocultar Información"
-                    : "Mostrar Información",
+                },
+                icon: const Icon(Icons.edit),
+                label: const Text("Editar Producto"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                ),
               ),
-            ),
-
-            const SizedBox(height: 15),
-
-            if (mostrarInfo) ...[
-              const Text("Código: P001"),
-              const Text("Categoría: Cuadernos"),
-              const Text("Precio: L.85.00"),
-              const Text("Cantidad: 25"),
-            ],
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-
-              onPressed: () {
-                setState(() {
-                  disponible = !disponible;
-                });
-              },
-
-              child: const Text("Cambiar Estado"),
-            ),
-
+            )
           ],
         ),
       ),
     );
   }
+
+  Widget datoProducto(String titulo, String valor){
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              titulo,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 17,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              valor,
+              style: const TextStyle(
+                fontSize: 17,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+  }
+
 }
