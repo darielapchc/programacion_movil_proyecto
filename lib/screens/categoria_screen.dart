@@ -50,6 +50,7 @@ class CategoriaScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 25,
+                      // ignore: deprecated_member_use
                       backgroundColor: const Color(0xFF8B5E3C).withOpacity(0.15),
                       child: Icon(cat['icono'], color: const Color(0xFF8B5E3C), size: 28),
                     ),
