@@ -85,21 +85,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  campoTexto(
+                  CampoTexto(
                     label: "Usuario",
                     icono: Icons.person,
                     controlador: usuarioController, 
                     esPassword: false,
                   ),
                   const SizedBox(height: 20),
-                  campoTexto(
+                  CampoTexto(
                     label: "Contraseña",
                     icono: Icons.lock,
                     controlador: passwordController,
                     esPassword: true,
                   ),
                   const SizedBox(height: 35),
-                  botonPrincipal(
+                  BotonPrincipal(
                     texto: "Ingresar",
                     onPressed: iniciarSesion,
                   ),

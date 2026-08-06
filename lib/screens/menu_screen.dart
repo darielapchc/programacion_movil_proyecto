@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:inventario_application_1/screens/inventario_screen.dart';
 import 'package:inventario_application_1/widgets/menu_card.dart';
-import 'package:inventario_application_1/screens/detalle_producto_screen.dart';
 import 'package:inventario_application_1/screens/agregar_producto_screen.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -48,7 +48,11 @@ class MenuScreen extends StatelessWidget {
           icono: Icons.inventory_2,
           color: Colors.brown,
           onTap: (){
-
+            Navigator.push(
+              context, 
+              MaterialPageRoute(
+              builder: (_) => InventarioScreen()),
+              );
           },
         ),
         MenuCard(
@@ -56,7 +60,6 @@ class MenuScreen extends StatelessWidget {
           icono: Icons.shopping_bag,
           color: Colors.blue,
           onTap: (){
-            
           },
         ),
         MenuCard(

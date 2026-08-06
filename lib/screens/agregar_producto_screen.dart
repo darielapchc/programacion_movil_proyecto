@@ -155,7 +155,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                   },
                 ),
                 const SizedBox(height: 35),
-                botonPrincipal(
+                BotonPrincipal(
                   texto: "Guardar Producto",
                   onPressed: guardarProducto,
                 ),
