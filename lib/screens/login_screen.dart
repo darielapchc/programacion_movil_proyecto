@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:inventario_application_1/screens/home_screen.dart';
-import 'package:inventario_application_1/widgets/campotexto.dart';
-import 'package:inventario_application_1/widgets/boton_principal.dart';
+import 'home_screen.dart'; // Importación relativa simplificada
+import '../widgets/campo_texto.dart';
+import '../widgets/boton_principal.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,15 +11,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Llave del formulario
   final _formKey = GlobalKey<FormState>();
-
-  // Controladores
   final TextEditingController usuarioController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  // Variable para mostrar u ocultar contraseña
-  bool ocultarPassword = true;
 
   @override
   void dispose() {
@@ -43,19 +37,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F0),
-
       appBar: AppBar(
-        backgroundColor: const Color(0xFF8B5E00),
+        backgroundColor: const Color(0xFF8B5E3C),
         foregroundColor: Colors.white,
         centerTitle: true,
         title: const Text("Iniciar Sesión"),
       ),
-
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(25),
-
             child: Form(
               key: _formKey,
               child: Column(
@@ -63,32 +54,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Icon(
                     Icons.inventory_2,
-                    size: 100,
-                    color: Color(0xFF8B5E00),
+                    size: 90,
+                    color: Color(0xFF8B5E3C),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 15),
                   const Text(
                     "Bienvenido",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
                   const Text(
                     "LNE Stock",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       color: Colors.grey,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 35),
                   CampoTexto(
                     label: "Usuario",
                     icono: Icons.person,
-                    controlador: usuarioController, 
+                    controlador: usuarioController,
                     esPassword: false,
                   ),
                   const SizedBox(height: 20),

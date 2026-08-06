@@ -10,7 +10,6 @@ class AgregarProductoScreen extends StatefulWidget {
 }
 
 class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
-
   final _formKey = GlobalKey<FormState>();
 
   final nombreController = TextEditingController();
@@ -68,21 +67,25 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const CircleAvatar(
-                  radius: 55,
-                  backgroundColor: Color(0xFFEADBC8),
-                  child: Icon(
-                    Icons.add_photo_alternate,
-                    size: 45,
-                    color: Color(0xFF8B5E3C),
+                const Center(
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Color(0xFFEADBC8),
+                    child: Icon(
+                      Icons.add_photo_alternate,
+                      size: 45,
+                      color: Color(0xFF8B5E3C),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 25),
                 CampoTexto(
                   label: "Nombre",
                   icono: Icons.inventory,
@@ -94,9 +97,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     return null;
                   },
                 ),
-
-                const SizedBox(height: 20),
-
+                const SizedBox(height: 15),
                 CampoTexto(
                   label: "Código",
                   icono: Icons.qr_code,
@@ -108,9 +109,8 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
-                  // ignore: deprecated_member_use
                   value: categoriaSeleccionada,
                   decoration: InputDecoration(
                     labelText: "Categoría",
@@ -131,7 +131,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
                 CampoTexto(
                   label: "Precio",
                   icono: Icons.attach_money,
@@ -143,7 +143,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
                 CampoTexto(
                   label: "Cantidad",
                   icono: Icons.numbers,
@@ -155,11 +155,12 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 35),
+                const SizedBox(height: 30),
                 BotonPrincipal(
                   texto: "Guardar Producto",
                   onPressed: guardarProducto,
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),

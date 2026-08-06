@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'inventario_screen.dart';
-//import 'categorias_screen.dart';
+import 'categoria_screen.dart';
 import 'agregar_producto_screen.dart';
 import '../utils/app_colors.dart';
 
@@ -14,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int paginaActual = 0;
+
   void cambiarPagina(int index) {
     setState(() {
       paginaActual = index;
@@ -23,13 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final pantallas = [
-      DashboardScreen(
-        cambiarPagina: cambiarPagina,
-      ),
+      DashboardScreen(cambiarPagina: cambiarPagina),
       const InventarioScreen(),
-      //const CategoriasScreen(),
+      const CategoriaScreen(), // Integrada correctamente
       const AgregarProductoScreen(),
     ];
+
     return Scaffold(
       body: pantallas[paginaActual],
       bottomNavigationBar: NavigationBar(
