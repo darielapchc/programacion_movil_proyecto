@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'screens/bienvenida_screen.dart';
+import 'utils/app_colors.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,10 +15,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "LNE Stock",
       theme: ThemeData(
-        colorSchemeSeed: Colors.indigo,
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
       ),
-      home: const HomeScreen(),
+        scaffoldBackgroundColor: AppColors.background,
+      ),
+        home: const BienvenidaScreen(),
     );
   }
 }

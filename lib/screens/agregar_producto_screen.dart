@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/campoTexto.dart';
-import '../widgets/botonPrincipal.dart';
+import '../widgets/campo_texto.dart';
+import '../widgets/boton_principal.dart';
 
 class AgregarProductoScreen extends StatefulWidget {
   const AgregarProductoScreen({super.key});
@@ -110,6 +110,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
+                  // ignore: deprecated_member_use
                   value: categoriaSeleccionada,
                   decoration: InputDecoration(
                     labelText: "Categoría",

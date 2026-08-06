@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/producto.dart';
-import '../widgets/productoCard.dart';
+import '../widgets/producto_card.dart';
 import 'detalle_producto_screen.dart';
 
 class InventarioScreen extends StatelessWidget {

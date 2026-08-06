@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:inventario_application_1/screens/home_screen.dart';
 import 'package:inventario_application_1/widgets/campotexto.dart';
-import 'package:inventario_application_1/widgets/botonPrincipal.dart';
-import 'menu_screen.dart';
+import 'package:inventario_application_1/widgets/boton_principal.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const MenuScreen(),
+          builder: (context) => const HomeScreen(),
         ),
       );
     }
