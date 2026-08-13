@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import '../utils/app_colors.dart';
-import '../widgets/producto_card.dart';
 
 class InventarioScreen extends StatefulWidget {
   const InventarioScreen({super.key});
