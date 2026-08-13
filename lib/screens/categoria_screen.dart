@@ -1,74 +1,159 @@
 import 'package:flutter/material.dart';
 
-class CategoriaScreen extends StatelessWidget {
-  const CategoriaScreen({super.key});
+import '../utils/app_colors.dart';
 
-  final List<Map<String, dynamic>> categorias = const [
-    {"nombre": "Cuadernos", "icono": Icons.book, "cantidad": 12},
-    {"nombre": "Papelería", "icono": Icons.description, "cantidad": 25},
-    {"nombre": "Lápices", "icono": Icons.edit, "cantidad": 40},
-    {"nombre": "Arte", "icono": Icons.palette, "cantidad": 8},
-    {"nombre": "Oficina", "icono": Icons.work, "cantidad": 15},
-    {"nombre": "Tecnología", "icono": Icons.devices, "cantidad": 5},
-  ];
+class CategoriasScreen extends StatelessWidget {
+  const CategoriasScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final categorias = [
+      {
+        'nombre': 'Cuadernos',
+        'icono': Icons.menu_book,
+        'cantidad': 25,
+      },
+      {
+        'nombre': 'Lápices',
+        'icono': Icons.edit,
+        'cantidad': 18,
+      },
+      {
+        'nombre': 'Papelería',
+        'icono': Icons.description,
+        'cantidad': 32,
+      },
+      {
+        'nombre': 'Arte',
+        'icono': Icons.palette,
+        'cantidad': 15,
+      },
+      {
+        'nombre': 'Oficina',
+        'icono': Icons.business_center,
+        'cantidad': 20,
+      },
+      {
+        'nombre': 'Escolar',
+        'icono': Icons.school,
+        'cantidad': 15,
+      },
+    ];
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F5F0),
+      backgroundColor: AppColors.background,
+
       appBar: AppBar(
-        title: const Text("Categorías"),
-        backgroundColor: const Color(0xFF8B5E3C),
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: GridView.builder(
-          itemCount: categorias.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
-            childAspectRatio: 1.1,
+        title: const Text(
+          'Categorías',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
           ),
-          itemBuilder: (context, index) {
-            final cat = categorias[index];
-            return Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+        ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              'Categorías de productos',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.text,
               ),
-              child: InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Categoría: ${cat['nombre']}")),
+            ),
+
+            const SizedBox(height: 6),
+
+            const Text(
+              'Organiza los productos de la librería.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF5F5F5F),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Expanded(
+              child: ListView.builder(
+                itemCount: categorias.length,
+
+                itemBuilder: (context, index) {
+                  final categoria = categorias[index];
+
+                  return Card(
+                    elevation: 3,
+                    margin: const EdgeInsets.only(bottom: 12),
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 8,
+                      ),
+
+                      leading: CircleAvatar(
+                        radius: 28,
+                        backgroundColor:
+                            AppColors.primary.withOpacity(0.12),
+
+                        child: Icon(
+                          categoria['icono'] as IconData,
+                          color: AppColors.primary,
+                          size: 28,
+                        ),
+                      ),
+
+                      title: Text(
+                        categoria['nombre'] as String,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.text,
+                        ),
+                      ),
+
+                      subtitle: Text(
+                        '${categoria['cantidad']} productos',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF5F5F5F),
+                        ),
+                      ),
+
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 17,
+                        color: AppColors.primary,
+                      ),
+
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Seleccionaste ${categoria['nombre']}',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
-                borderRadius: BorderRadius.circular(15),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 25,
-                      // ignore: deprecated_member_use
-                      backgroundColor: const Color(0xFF8B5E3C).withOpacity(0.15),
-                      child: Icon(cat['icono'], color: const Color(0xFF8B5E3C), size: 28),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      cat['nombre'],
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${cat['cantidad']} productos",
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
-                ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

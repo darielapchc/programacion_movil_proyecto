@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pantallas = [
       DashboardScreen(cambiarPagina: cambiarPagina),
       const InventarioScreen(),
-      const CategoriaScreen(), // Integrada correctamente
+      const CategoriasScreen(), // Integrada correctamente
       const AgregarProductoScreen(),
     ];
 

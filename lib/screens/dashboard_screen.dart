@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/menu_card.dart';
 import 'perfil_screen.dart';
+import 'estadisticas_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final Function(int) cambiarPagina;
@@ -153,11 +154,10 @@ class DashboardScreen extends StatelessWidget {
                   titulo: "Estadísticas",
                   icono: Icons.bar_chart,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Estadísticas detalladas próximamente",
-                        ),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (_) => const EstadisticasScreen(),
                       ),
                     );
                   },
