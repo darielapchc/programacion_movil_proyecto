@@ -22,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  //Pendiente de hacer la validaciones
   void iniciarSesion() {
     if (_formKey.currentState!.validate()) {
       Navigator.pushReplacement(

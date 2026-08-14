@@ -64,6 +64,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
     buscadorController.addListener(_buscarProducto);
   }
 
+  //Este es el metodo encargado de buscar los productos.
   void _buscarProducto() {
 
     final texto = buscadorController.text.toLowerCase();
