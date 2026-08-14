@@ -55,6 +55,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   List<Map<String, dynamic>> productosFiltrados = [];
 
+  // Guarda los códigos de los productos marcados como favoritos.
+  final Set<String> productosFavoritos = {};
+
   @override
   void initState() {
     super.initState();
@@ -70,7 +73,6 @@ class _InventarioScreenState extends State<InventarioScreen> {
     final texto = buscadorController.text.toLowerCase();
 
     setState(() {
-
       productosFiltrados = productos.where((producto) {
 
         final nombre =
@@ -89,6 +91,119 @@ class _InventarioScreenState extends State<InventarioScreen> {
       }).toList();
 
     });
+  }
+
+  //Alternar el estado de favorito de un producto
+  void _alternarFavorito(String codigo) {
+    setState(() {
+      if (productosFavoritos.contains(codigo)) {
+        productosFavoritos.remove(codigo);
+      } else {
+        productosFavoritos.add(codigo);
+      }
+    });
+  }
+
+  // Muestra el AlertDialog al mantener presionado un producto.
+  Future<void> _mostrarDialogoEliminar(
+    BuildContext context,
+    Map<String, dynamic> producto,
+  ) async {
+    final bool? confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Eliminar producto'),
+          content: Text(
+            '¿Desea eliminar este item?\n\n'
+            '${producto['nombre']}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text(
+                'Eliminar',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmar == true) {
+      _eliminarProducto(producto);
+    }
+  }
+
+  // Elimina un producto de la lista principal.
+  void _eliminarProducto(Map<String, dynamic> producto) {
+    final String codigo = producto['codigo'];
+
+    setState(() {
+      productos.removeWhere(
+        (item) => item['codigo'] == codigo,
+      );
+
+      productosFavoritos.remove(codigo);
+
+      productosFiltrados = productos.where((item) {
+        final texto =
+            buscadorController.text.toLowerCase();
+
+        final nombre =
+            item['nombre'].toString().toLowerCase();
+
+        final codigoProducto =
+            item['codigo'].toString().toLowerCase();
+
+        final categoria =
+            item['categoria'].toString().toLowerCase();
+
+        return nombre.contains(texto) ||
+            codigoProducto.contains(texto) ||
+            categoria.contains(texto);
+      }).toList();
+    });
+  }
+
+  // SnackBar para confirmar una acción.
+  void _mostrarSnackBar({
+    required String mensaje,
+    String? accionTexto,
+    VoidCallback? onAccion,
+    Duration duracion = const Duration(seconds: 5),
+  }) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje),
+        duration: duracion,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        action: accionTexto != null && onAccion != null
+            ? SnackBarAction(
+                label: accionTexto,
+                textColor: Colors.white,
+                onPressed: onAccion,
+              )
+            : null,
+      ),
+    );
   }
 
   @override
