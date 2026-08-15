@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: unused_element, deprecated_member_use
 
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
@@ -317,6 +317,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
             const SizedBox(height: 10),
 
             // LISTA
+            //Aqui tengo que seguir editanto el codigo para agregar lo de las modificaciones que hice arriba.
             Expanded(
               child: productosFiltrados.isEmpty
                   ? _sinResultados()
@@ -324,12 +325,266 @@ class _InventarioScreenState extends State<InventarioScreen> {
                       itemCount: productosFiltrados.length,
 
                       itemBuilder: (context, index) {
-
                         final producto =
                             productosFiltrados[index];
 
-                        return _productoInventarioCard(
-                          producto,
+                        final String codigo =
+                            producto['codigo'];
+
+                        final bool esFavorito =
+                            productosFavoritos.contains(codigo);
+
+                        return Dismissible(
+                          key: ValueKey(codigo),
+
+                          // Deslizar hacia la derecha.
+                          background: Container(
+                            margin: const EdgeInsets.only(
+                              bottom: 12,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius:
+                                  BorderRadius.circular(18),
+                            ),
+                            alignment: Alignment.centerLeft,
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Editar',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Deslizar hacia la izquierda.
+                          secondaryBackground: Container(
+                            margin: const EdgeInsets.only(
+                              bottom: 12,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius:
+                                  BorderRadius.circular(18),
+                            ),
+                            alignment: Alignment.centerRight,
+                            child: const Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Eliminar',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Determina qué ocurre con cada dirección.
+                          confirmDismiss: (direction) async {
+                            if (direction ==
+                                DismissDirection.startToEnd) {
+                              // EDITAR
+                              _mostrarSnackBar(
+                                mensaje:
+                                    'Producto seleccionado para editar.',
+                                accionTexto: 'VER',
+                                onAccion: () {
+                                  // La acción VER queda preparada
+                                  // para navegar a otra pantalla.
+                                  ScaffoldMessenger.of(context)
+                                      .hideCurrentSnackBar();
+                                },
+                              );
+
+                              return false;
+                            }
+
+                            // ELIMINAR
+                            _eliminarProducto(producto);
+
+                            _mostrarSnackBar(
+                              mensaje:
+                                  '${producto['nombre']} eliminado correctamente.',
+                            );
+
+                            return false;
+                          },
+
+                          child: GestureDetector(
+                            onLongPress: () {
+                              _mostrarDialogoEliminar(
+                                context,
+                                producto,
+                              );
+                            },
+
+                            child: Card(
+                              elevation: 3,
+
+                              margin: const EdgeInsets.only(
+                                bottom: 12,
+                              ),
+
+                              shape:
+                                  RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(18),
+                              ),
+
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.all(15),
+
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 28,
+                                          backgroundColor:
+                                              AppColors.primary
+                                                  .withOpacity(
+                                            0.12,
+                                          ),
+
+                                          child: const Icon(
+                                            Icons.inventory_2,
+                                            color:
+                                                AppColors.primary,
+                                            size: 28,
+                                          ),
+                                        ),
+
+                                        const SizedBox(width: 15),
+
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment
+                                                    .start,
+                                            children: [
+                                              Text(
+                                                producto['nombre'],
+                                                style:
+                                                    const TextStyle(
+                                                  fontSize: 17,
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .bold,
+                                                  color:
+                                                      AppColors
+                                                          .text,
+                                                ),
+                                              ),
+
+                                              const SizedBox(
+                                                height: 4,
+                                              ),
+
+                                              Text(
+                                                producto[
+                                                    'categoria'],
+                                                style:
+                                                    const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color(
+                                                    0xFF5F5F5F,
+                                                  ),
+                                                ),
+                                              ),
+
+                                              const SizedBox(
+                                                height: 3,
+                                              ),
+
+                                              Text(
+                                                'Código: ${producto['codigo']}',
+                                                style:
+                                                    const TextStyle(
+                                                  fontSize: 13,
+                                                  color: Color(
+                                                    0xFF5F5F5F,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        Column(
+                                          children: [
+                                            Text(
+                                              'L. ${producto['precio'].toStringAsFixed(2)}',
+                                              style:
+                                                  const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight:
+                                                    FontWeight.bold,
+                                                color: AppColors
+                                                    .primary,
+                                              ),
+                                            ),
+
+                                            IconButton(
+                                              tooltip: 'Favorito',
+                                              icon: Icon(
+                                                esFavorito
+                                                    ? Icons.favorite
+                                                    : Icons
+                                                        .favorite_border,
+                                                color: esFavorito
+                                                    ? Colors.red
+                                                    : Colors.grey,
+                                              ),
+                                              onPressed: () {
+                                                _alternarFavorito(
+                                                  codigo,
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    const Divider(),
+
+                                    const SizedBox(height: 5),
+
+                                    _estadoProducto(
+                                      producto['cantidad'],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -340,6 +595,63 @@ class _InventarioScreenState extends State<InventarioScreen> {
     );
   }
 
+  // Widget que muestra el estado actual del inventario.
+  Widget _estadoProducto(int cantidad) {
+    Color colorEstado;
+    String textoEstado;
+    IconData iconoEstado;
+
+    if (cantidad == 0) {
+      colorEstado = Colors.red;
+      textoEstado = 'Agotado';
+      iconoEstado = Icons.cancel;
+    } else if (cantidad <= 5) {
+      colorEstado = Colors.orange;
+      textoEstado = 'Stock bajo';
+      iconoEstado = Icons.warning_amber_rounded;
+    } else {
+      colorEstado = Colors.green;
+      textoEstado = 'Disponible';
+      iconoEstado = Icons.check_circle;
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Icon(
+              iconoEstado,
+              size: 19,
+              color: colorEstado,
+            ),
+
+            const SizedBox(width: 6),
+
+            Text(
+              textoEstado,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: colorEstado,
+              ),
+            ),
+          ],
+        ),
+
+        Text(
+          '$cantidad unidades',
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /*
   Widget _productoInventarioCard(
       Map<String, dynamic> producto) {
 
@@ -494,6 +806,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
       ),
     );
   }
+  */
 
   Widget _sinResultados() {
 
