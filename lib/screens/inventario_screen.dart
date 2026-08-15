@@ -1,7 +1,8 @@
-// ignore_for_file: unused_element, deprecated_member_use
-
+// ignore_for_file: deprecated_member_use, unused_import
 import 'package:flutter/material.dart';
+import '../models/producto.dart';
 import '../utils/app_colors.dart';
+import 'detalle_producto_screen.dart';
 
 class InventarioScreen extends StatefulWidget {
   const InventarioScreen({super.key});
@@ -11,6 +12,33 @@ class InventarioScreen extends StatefulWidget {
 }
 
 class _InventarioScreenState extends State<InventarioScreen> {
+
+  Producto _convertirAProducto(Map<String, dynamic> producto) {
+    return Producto(
+      id: producto['id'] ?? 0,
+      nombre: producto['nombre'],
+      categoria: producto['categoria'],
+      codigo: producto['codigo'],
+      precio: producto['precio'],
+      cantidad: producto['cantidad'],
+      imagen: producto['imagen'] ?? '',
+    );
+  }
+
+  // Navega a la pantalla de detalle del producto.
+  void _verDetalleProducto(Map<String, dynamic> producto) {
+    final Producto productoModelo =
+        _convertirAProducto(producto);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetalleProductoScreen(
+          producto: productoModelo,
+        ),
+      ),
+    );
+  }
 
   final TextEditingController buscadorController =
       TextEditingController();
@@ -184,7 +212,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
     VoidCallback? onAccion,
     Duration duracion = const Duration(seconds: 5),
   }) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    //ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -317,277 +345,222 @@ class _InventarioScreenState extends State<InventarioScreen> {
             const SizedBox(height: 10),
 
             // LISTA
-            //Aqui tengo que seguir editanto el codigo para agregar lo de las modificaciones que hice arriba.
             Expanded(
-              child: productosFiltrados.isEmpty
-                  ? _sinResultados()
-                  : ListView.builder(
-                      itemCount: productosFiltrados.length,
+              child: productosFiltrados.isEmpty ? _sinResultados() : ListView.builder(
+                itemCount: productosFiltrados.length,
+                itemBuilder: (context, index) {
+                  final producto = productosFiltrados[index];
+                  final String codigo = producto['codigo'];
+                  final bool esFavorito = productosFavoritos.contains(codigo);
 
-                      itemBuilder: (context, index) {
-                        final producto =
-                            productosFiltrados[index];
+                  return Dismissible(
+                    key: ValueKey(codigo),
 
-                        final String codigo =
-                            producto['codigo'];
-
-                        final bool esFavorito =
-                            productosFavoritos.contains(codigo);
-
-                        return Dismissible(
-                          key: ValueKey(codigo),
-
-                          // Deslizar hacia la derecha.
-                          background: Container(
-                            margin: const EdgeInsets.only(
-                              bottom: 12,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius:
-                                  BorderRadius.circular(18),
-                            ),
-                            alignment: Alignment.centerLeft,
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Editar',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                    // Deslizar hacia la derecha.
+                    background: Container(
+                      margin: const EdgeInsets.only(
+                        bottom: 12,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius:
+                            BorderRadius.circular(18),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Editar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                        ],
+                      ),
+                    ),
 
-                          // Deslizar hacia la izquierda.
-                          secondaryBackground: Container(
-                            margin: const EdgeInsets.only(
-                              bottom: 12,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius:
-                                  BorderRadius.circular(18),
-                            ),
-                            alignment: Alignment.centerRight,
-                            child: const Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'Eliminar',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Icon(
-                                  Icons.delete,
-                                  color: Colors.white,
-                                ),
-                              ],
+                    // Deslizar hacia la izquierda para eliminar.
+                    secondaryBackground: Container(
+                      margin: const EdgeInsets.only(
+                        bottom: 12,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius:
+                            BorderRadius.circular(18),
+                      ),
+                      alignment: Alignment.centerRight,
+                      child: const Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Eliminar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
 
-                          // Determina qué ocurre con cada dirección.
-                          confirmDismiss: (direction) async {
-                            if (direction ==
-                                DismissDirection.startToEnd) {
-                              // EDITAR
-                              _mostrarSnackBar(
-                                mensaje:
-                                    'Producto seleccionado para editar.',
-                                accionTexto: 'VER',
-                                onAccion: () {
-                                  // La acción VER queda preparada
-                                  // para navegar a otra pantalla.
-                                  ScaffoldMessenger.of(context)
-                                      .hideCurrentSnackBar();
-                                },
-                              );
-
-                              return false;
-                            }
-
-                            // ELIMINAR
-                            _eliminarProducto(producto);
-
-                            _mostrarSnackBar(
-                              mensaje:
-                                  '${producto['nombre']} eliminado correctamente.',
-                            );
-
-                            return false;
+                    // Determina qué ocurre con cada dirección.
+                    confirmDismiss: (direction) async {
+                      if (direction == DismissDirection.startToEnd) {
+                        // EDITAR
+                        _mostrarSnackBar(
+                          mensaje: 'Producto seleccionado.',
+                          accionTexto: 'VER', // La acción VER queda preparada
+                          onAccion: () {
+                            _verDetalleProducto(producto); // para navegar a otra pantalla.
                           },
+                        );
+                        return false;
+                      }
 
-                          child: GestureDetector(
-                            onLongPress: () {
-                              _mostrarDialogoEliminar(
-                                context,
-                                producto,
-                              );
-                            },
+                      // ELIMINAR
+                      _eliminarProducto(producto);
+                      _mostrarSnackBar(
+                        mensaje: '${producto['nombre']} eliminado correctamente.',
+                      );
+                      return false;
+                    },
 
-                            child: Card(
-                              elevation: 3,
+                    child: GestureDetector(
+                      onLongPress: () {
+                        _mostrarDialogoEliminar(
+                          context,
+                          producto,
+                        );
+                      },
 
-                              margin: const EdgeInsets.only(
-                                bottom: 12,
-                              ),
+                      child: Card(
+                        elevation: 3,
 
-                              shape:
-                                  RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(18),
-                              ),
+                        margin: const EdgeInsets.only(
+                          bottom: 12,
+                        ),
 
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.all(15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
 
-                                child: Column(
-                                  children: [
-                                    Row(
+                        child: Padding(
+                          padding:const EdgeInsets.all(15),
+                          child: Column(
+                            children:[
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 28,
+                                    backgroundColor:AppColors.primary.withOpacity(0.12),
+                                    child: const Icon(
+                                      Icons.inventory_2,
+                                      color: AppColors.primary,
+                                      size: 28,
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 15),
+
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        CircleAvatar(
-                                          radius: 28,
-                                          backgroundColor:
-                                              AppColors.primary
-                                                  .withOpacity(
-                                            0.12,
-                                          ),
-
-                                          child: const Icon(
-                                            Icons.inventory_2,
-                                            color:
-                                                AppColors.primary,
-                                            size: 28,
+                                        Text(
+                                          producto['nombre'],
+                                          style: const TextStyle(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.bold,
+                                            color:AppColors.text,
                                           ),
                                         ),
 
-                                        const SizedBox(width: 15),
+                                        const SizedBox(
+                                          height: 4,
+                                        ),
 
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment
-                                                    .start,
-                                            children: [
-                                              Text(
-                                                producto['nombre'],
-                                                style:
-                                                    const TextStyle(
-                                                  fontSize: 17,
-                                                  fontWeight:
-                                                      FontWeight
-                                                          .bold,
-                                                  color:
-                                                      AppColors
-                                                          .text,
-                                                ),
-                                              ),
-
-                                              const SizedBox(
-                                                height: 4,
-                                              ),
-
-                                              Text(
-                                                producto[
-                                                    'categoria'],
-                                                style:
-                                                    const TextStyle(
-                                                  fontSize: 14,
-                                                  color: Color(
-                                                    0xFF5F5F5F,
-                                                  ),
-                                                ),
-                                              ),
-
-                                              const SizedBox(
-                                                height: 3,
-                                              ),
-
-                                              Text(
-                                                'Código: ${producto['codigo']}',
-                                                style:
-                                                    const TextStyle(
-                                                  fontSize: 13,
-                                                  color: Color(
-                                                    0xFF5F5F5F,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
+                                        Text(
+                                          producto['categoria'],
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Color(0xFF5F5F5F),
                                           ),
                                         ),
 
-                                        Column(
-                                          children: [
-                                            Text(
-                                              'L. ${producto['precio'].toStringAsFixed(2)}',
-                                              style:
-                                                  const TextStyle(
-                                                fontSize: 15,
-                                                fontWeight:
-                                                    FontWeight.bold,
-                                                color: AppColors
-                                                    .primary,
-                                              ),
-                                            ),
+                                        const SizedBox(
+                                          height: 3,
+                                        ),
 
-                                            IconButton(
-                                              tooltip: 'Favorito',
-                                              icon: Icon(
-                                                esFavorito
-                                                    ? Icons.favorite
-                                                    : Icons
-                                                        .favorite_border,
-                                                color: esFavorito
-                                                    ? Colors.red
-                                                    : Colors.grey,
-                                              ),
-                                              onPressed: () {
-                                                _alternarFavorito(
-                                                  codigo,
-                                                );
-                                              },
-                                            ),
-                                          ],
+                                        Text(
+                                          'Código: ${producto['codigo']}',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Color(0xFF5F5F5F),
+                                          ),
                                         ),
                                       ],
                                     ),
+                                  ),
 
-                                    const SizedBox(height: 12),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        'L. ${producto['precio'].toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
 
-                                    const Divider(),
-
-                                    const SizedBox(height: 5),
-
-                                    _estadoProducto(
-                                      producto['cantidad'],
-                                    ),
-                                  ],
-                                ),
+                                      IconButton(
+                                        tooltip: 'Favorito',
+                                        icon: Icon( 
+                                          esFavorito ? Icons.favorite : Icons.favorite_border,
+                                          color: esFavorito ? Colors.red : Colors.grey,
+                                        ),
+                                        onPressed: () {
+                                          _alternarFavorito(
+                                            codigo,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
+
+                              const SizedBox(height: 12),
+                              const Divider(),
+                              const SizedBox(height: 5),
+                              _estadoProducto( producto['cantidad']),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -650,163 +623,6 @@ class _InventarioScreenState extends State<InventarioScreen> {
       ],
     );
   }
-
-  /*
-  Widget _productoInventarioCard(
-      Map<String, dynamic> producto) {
-
-    final int cantidad = producto['cantidad'];
-
-    Color colorEstado;
-    String textoEstado;
-    IconData iconoEstado;
-
-    if (cantidad == 0) {
-      colorEstado = Colors.red;
-      textoEstado = 'Agotado';
-      iconoEstado = Icons.cancel;
-    } else if (cantidad <= 5) {
-      colorEstado = Colors.orange;
-      textoEstado = 'Stock bajo';
-      iconoEstado = Icons.warning_amber_rounded;
-    } else {
-      colorEstado = Colors.green;
-      textoEstado = 'Disponible';
-      iconoEstado = Icons.check_circle;
-    }
-
-    return Card(
-      elevation: 3,
-
-      margin: const EdgeInsets.only(bottom: 12),
-
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
-
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-
-        child: Column(
-          children: [
-
-            Row(
-              children: [
-
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor:
-                      AppColors.primary.withOpacity(0.12),
-
-                  child: const Icon(
-                    Icons.inventory_2,
-                    color: AppColors.primary,
-                    size: 28,
-                  ),
-                ),
-
-                const SizedBox(width: 15),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
-                    children: [
-
-                      Text(
-                        producto['nombre'],
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.text,
-                        ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Text(
-                        producto['categoria'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF5F5F5F),
-                        ),
-                      ),
-
-                      const SizedBox(height: 3),
-
-                      Text(
-                        'Código: ${producto['codigo']}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF5F5F5F),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Text(
-                  'L. ${producto['precio'].toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            const Divider(),
-
-            const SizedBox(height: 5),
-
-            Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
-
-              children: [
-
-                Row(
-                  children: [
-
-                    Icon(
-                      iconoEstado,
-                      size: 19,
-                      color: colorEstado,
-                    ),
-
-                    const SizedBox(width: 6),
-
-                    Text(
-                      textoEstado,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: colorEstado,
-                      ),
-                    ),
-                  ],
-                ),
-
-                Text(
-                  '$cantidad unidades',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.text,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  */
 
   Widget _sinResultados() {
 
