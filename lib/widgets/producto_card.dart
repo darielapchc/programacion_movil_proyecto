@@ -1,18 +1,57 @@
 import 'package:flutter/material.dart';
-import '../models/producto.dart';
+//import '../models/producto.dart';
 
 class ProductoCard extends StatelessWidget {
-  final Producto producto;
-  final VoidCallback onTap;
+  //Datos obligatorio para los prodductos.
+  final String nombre;
+  final String codigo;
+  final String categoria;
+  final double precio;
+  final int cantidad;
+
+  //Los que estableci como parametros opcionales
+  final bool mostrarEstado;
+  final Color colorAccento;
+
+  //Los famosos callbacks
+  final VoidCallback onTap; // Abrir detalle del producto
+  final VoidCallback onDelete; //Ejecutar acción de eliminar
 
   const ProductoCard({
     super.key,
-    required this.producto,
+    required this.nombre,
+    required this.codigo,
+    required this.cantidad,
+    required this.categoria,
+    required this.precio,
     required this.onTap,
+    required this.onDelete,
+    this.mostrarEstado = true,
+    this.colorAccento = Colors.brown,
   });
 
   @override
   Widget build(BuildContext context) {
+
+    //Determinar el estado del inventario
+    String textoEstado = '';
+    Color colorEstado;
+    IconData iconoEstado;
+
+    if (cantidad == 0) {
+      textoEstado = 'Agotado';
+      colorEstado = Colors.red;
+      iconoEstado = Icons.error_outline;
+    } else if (cantidad <= 5) {
+      textoEstado = 'Stock bajo';
+      colorEstado = Colors.yellow;
+      iconoEstado = Icons.warning_amber_rounded;
+    } else {
+      textoEstado = 'Disponible';
+      colorEstado = Colors.green;
+      iconoEstado = Icons.check_circle_outline;
+    }
+
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -23,15 +62,16 @@ class ProductoCard extends StatelessWidget {
         onTap: onTap,
 
         leading: CircleAvatar(
-          backgroundColor: Colors.brown.shade100,
-          child: const Icon(
+          // ignore: deprecated_member_use
+          backgroundColor: colorAccento.withOpacity(0.15),
+          child: Icon(
             Icons.inventory_2,
-            color: Colors.brown,
+            color: colorAccento,
           ),
         ),
 
         title: Text(
-          producto.nombre,
+          nombre,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
@@ -39,13 +79,61 @@ class ProductoCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Código: ${producto.codigo}"),
-            Text("Categoría: ${producto.categoria}"),
-            Text("Cantidad: ${producto.cantidad}"),
-            Text("Precio: L. ${producto.precio.toStringAsFixed(2)}"),
+            Text("Código: $codigo"),
+            Text("Categoría: $categoria"),
+            Text("Cantidad: $cantidad"),
+            Text("Precio: L. ${precio.toStringAsFixed(2)}"),
+
+            //Widget condicional
+            mostrarEstado 
+            ? Container(
+              margin: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                // ignore: deprecated_member_use
+                color: colorEstado.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    iconoEstado,
+                    size: 16,
+                    color: colorEstado,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    textoEstado,
+                    style: TextStyle(
+                      color: colorEstado,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            )
+            : const SizedBox.shrink(),
           ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              onPressed: onDelete,
+             icon: const Icon(Icons.delete_outline),
+             tooltip: 'Eliminar producto',
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+            ),
+          ],
+        )
       ),
     );
   }
