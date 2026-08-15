@@ -15,7 +15,8 @@ class ProductoCard extends StatelessWidget {
 
   //Los famosos callbacks
   final VoidCallback onTap; // Abrir detalle del producto
-  final VoidCallback onDelete; //Ejecutar acción de eliminar
+  final VoidCallback onFavorite; //Ejecutar accion de poner el corazoncito como lo tenia anteriormente.
+  final bool esFavorito;
 
   const ProductoCard({
     super.key,
@@ -25,7 +26,8 @@ class ProductoCard extends StatelessWidget {
     required this.categoria,
     required this.precio,
     required this.onTap,
-    required this.onDelete,
+    required this.onFavorite,
+    required this.esFavorito,
     this.mostrarEstado = true,
     this.colorAccento = Colors.brown,
   });
@@ -124,10 +126,13 @@ class ProductoCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              onPressed: onDelete,
-             icon: const Icon(Icons.delete_outline),
-             tooltip: 'Eliminar producto',
-            ),
+              tooltip: 'Favorito',
+              icon: Icon( 
+                esFavorito ? Icons.favorite : Icons.favorite_border,
+                color: esFavorito ? Colors.red : Colors.grey,
+              ),
+              onPressed: onFavorite,
+            ), 
             const Icon(
               Icons.arrow_forward_ios,
               size: 16,
