@@ -17,6 +17,7 @@ class ProductoCard extends StatelessWidget {
   final VoidCallback onTap; // Abrir detalle del producto
   final VoidCallback onFavorite; //Ejecutar accion de poner el corazoncito como lo tenia anteriormente.
   final bool esFavorito;
+  final bool mostrarFavorito;
 
   const ProductoCard({
     super.key,
@@ -29,6 +30,7 @@ class ProductoCard extends StatelessWidget {
     required this.onFavorite,
     required this.esFavorito,
     this.mostrarEstado = true,
+    this.mostrarFavorito = true,
     this.colorAccento = Colors.brown,
   });
 
@@ -125,6 +127,8 @@ class ProductoCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            //Aqui se encuentra la logica del corazoncito <3
+            if(mostrarFavorito)
             IconButton(
               tooltip: 'Favorito',
               icon: Icon( 
