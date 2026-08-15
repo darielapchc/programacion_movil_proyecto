@@ -6,6 +6,9 @@ import 'agregar_producto_screen.dart';
 import 'estadisticas_screen.dart';
 import 'bienvenida_screen.dart';
 import '../utils/app_colors.dart';
+import '../utils/snackbar_helper.dart';
+import '../widgets/campo_texto.dart';
+import '../widgets/boton_principal.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,146 +31,211 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void mostrarFormularioNuevoProducto() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(25),
-        ),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [                // Encabezado
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  final formKey = GlobalKey<FormState>();
+
+  final nombreController = TextEditingController();
+  final codigoController = TextEditingController();
+  final precioController = TextEditingController();
+  final cantidadController = TextEditingController();
+
+  String? categoriaSeleccionada;
+
+  final List<String> categorias = [
+    "Cuadernos",
+    "Papelería",
+    "Lápices",
+    "Arte",
+    "Oficina",
+    "Tecnología",
+  ];
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (bottomSheetContext) {
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8F5F0),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Indicador superior
+                    Center(
+                      child: Container(
+                        width: 45,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
                     const Text(
                       'Nuevo producto',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF8B5E3C),
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
+
+                    const SizedBox(height: 20),
+
+                    // NOMBRE
+                    CampoTexto(
+                      label: "Nombre",
+                      icono: Icons.inventory,
+                      controlador: nombreController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Ingrese el nombre";
+                        }
+                        return null;
                       },
-                      icon: const Icon(Icons.close),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                const Text(
-                  'Ingresa los datos del nuevo producto',
-                  style: TextStyle(
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Campo 1
-                TextField(
-                  controller: nombreController,
-                  decoration: InputDecoration(
-                    labelText: 'Nombre del producto',
-                    prefixIcon: const Icon(Icons.inventory_2),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
+
+                    const SizedBox(height: 15),
+
+                    // CÓDIGO
+                    CampoTexto(
+                      label: "Código",
+                      icono: Icons.qr_code,
+                      controlador: codigoController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Ingrese el código";
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                // Campo 2
-                TextField(
-                  controller: codigoController,
-                  decoration: InputDecoration(
-                    labelText: 'Código',
-                    prefixIcon: const Icon(Icons.qr_code),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                // Campo 3
-                TextField(
-                  controller: cantidadController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Cantidad',
-                    prefixIcon: const Icon(Icons.numbers),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Botones
-                Row(
-                  children: [
-                    // Cancelar
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Cancelar'),
+
+                    const SizedBox(height: 15),
+
+                    // CATEGORÍA
+                    DropdownButtonFormField<String>(
+                      value: categoriaSeleccionada,
+                      decoration: InputDecoration(
+                        labelText: "Categoría",
+                        prefixIcon: const Icon(Icons.category),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
+                      items: categorias.map((categoria) {
+                        return DropdownMenuItem<String>(
+                          value: categoria,
+                          child: Text(categoria),
+                        );
+                      }).toList(),
+                      onChanged: (valor) {
+                        setModalState(() {
+                          categoriaSeleccionada = valor;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return "Seleccione una categoría";
+                        }
+                        return null;
+                      },
                     ),
-                    const SizedBox(width: 12),
-                    // Guardar
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          if (nombreController.text.isEmpty ||
-                              codigoController.text.isEmpty ||
-                              cantidadController.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Completa todos los campos',
-                                ),
-                              ),
-                            );
-                            return;
-                          }
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
+
+                    const SizedBox(height: 15),
+
+                    // PRECIO
+                    CampoTexto(
+                      label: "Precio",
+                      icono: Icons.attach_money,
+                      controlador: precioController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Ingrese el precio";
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    // CANTIDAD
+                    CampoTexto(
+                      label: "Cantidad",
+                      icono: Icons.numbers,
+                      controlador: cantidadController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Ingrese la cantidad";
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // BOTÓN GUARDAR
+                    BotonPrincipal(
+                      texto: "Guardar Producto",
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          Navigator.pop(bottomSheetContext);
+
+                          SnackBarHelper.mostrarConAccion(
+                            this.context,
+                            mensaje:
                                 '${nombreController.text} preparado para agregar',
-                              ),
-                            ),
+                            onVer: () {
+                              cambiarPagina(1);
+                            },
                           );
-                          nombreController.clear();
-                          codigoController.clear();
-                          cantidadController.clear();
-                        },
-                        icon: const Icon(Icons.save),
-                        label: const Text('Guardar'),
+                        }
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // BOTÓN CANCELAR
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(bottomSheetContext);
+                      },
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(
+                          color: Color(0xFF8B5E3C),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   void dispose() {
