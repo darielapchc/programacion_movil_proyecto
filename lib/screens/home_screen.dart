@@ -3,7 +3,6 @@ import 'dashboard_screen.dart';
 import 'inventario_screen.dart';
 import 'categoria_screen.dart';
 import 'agregar_producto_screen.dart';
-import 'perfil_screen.dart';
 import 'estadisticas_screen.dart';
 import 'bienvenida_screen.dart';
 import '../utils/app_colors.dart';
@@ -206,55 +205,58 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.zero,
           children: [
             Container(
-              height: 190,
+              height: 210,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.secondary,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                colors: [
+                  AppColors.primary,
+                 AppColors.secondary,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: const SafeArea(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Icons.inventory_2,
-                          size: 30,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'LNE Stock',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 23,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Sistema de inventario',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
+           ),
+            child: const SafeArea(
+            child: Padding(
+            padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.person,
+                  size: 28,
+                  color: AppColors.primary,
                 ),
-              ),
             ),
+          SizedBox(height: 8),
+          Text(
+            'LNE Stock',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          SizedBox(height: 2),
+
+          Text(
+            'Sistema de inventario',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    ),
+  ),
+),
             // ==================================================
             // 1. INICIO
             // ==================================================
@@ -338,7 +340,6 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Estadísticas'),
               onTap: () {
                 Navigator.pop(context);
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/producto.dart';
+import '../widgets/stock_status.dart';
 
 class DetalleProductoScreen extends StatelessWidget {
 
@@ -66,6 +67,13 @@ class DetalleProductoScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            const SizedBox(height: 30),
+              StockStatusWidget(
+                cantidad: producto.cantidad,
+                stockMinimo: 10,
+                titulo: 'Estado del inventario',
+              ),
             const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
