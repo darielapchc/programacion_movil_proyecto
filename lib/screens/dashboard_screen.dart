@@ -198,6 +198,7 @@ class DashboardScreen extends StatelessWidget {
           children: [
 
             CircleAvatar(
+              // ignore: deprecated_member_use
               backgroundColor: AppColors.primary.withOpacity(0.12),
               child: Icon(
                 icono,

@@ -111,6 +111,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                 ),
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
+                  // ignore: deprecated_member_use
                   value: categoriaSeleccionada,
                   decoration: InputDecoration(
                     labelText: "Categoría",

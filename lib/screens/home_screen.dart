@@ -134,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // CATEGORÍA
                     DropdownButtonFormField<String>(
+                      // ignore: deprecated_member_use
                       value: categoriaSeleccionada,
                       decoration: InputDecoration(
                         labelText: "Categoría",

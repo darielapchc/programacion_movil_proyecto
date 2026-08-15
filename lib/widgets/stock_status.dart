@@ -42,9 +42,11 @@ class StockStatusWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        // ignore: deprecated_member_use
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
+          // ignore: deprecated_member_use
           color: color.withOpacity(0.35),
         ),
       ),
@@ -95,6 +97,7 @@ class StockStatusWidget extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progreso,
               minHeight: 9,
+              // ignore: deprecated_member_use
               backgroundColor: color.withOpacity(0.15),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
