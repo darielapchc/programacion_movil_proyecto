@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import '../widgets/campo_texto.dart';
 import '../widgets/boton_principal.dart';
@@ -113,6 +111,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                 ),
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
+                  // ignore: deprecated_member_use
                   value: categoriaSeleccionada,
                   decoration: InputDecoration(
                     labelText: "Categoría",

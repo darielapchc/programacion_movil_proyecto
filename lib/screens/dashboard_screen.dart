@@ -1,10 +1,9 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/menu_card.dart';
 import 'perfil_screen.dart';
 import 'estadisticas_screen.dart';
+import '../widgets/stock_status.dart';
 
 class DashboardScreen extends StatelessWidget {
   final Function(int) cambiarPagina;
@@ -27,7 +26,6 @@ class DashboardScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -112,7 +110,16 @@ class DashboardScreen extends StatelessWidget {
               ],
             ),
 
+            const SizedBox(height: 20),
+
+            const StockStatusWidget(
+              cantidad: 8,
+              stockMinimo: 10,
+              titulo: 'Resumen del stock',
+            ),
+
             const SizedBox(height: 30),
+            
 
             const Text(
               "Accesos rápidos",
@@ -191,6 +198,7 @@ class DashboardScreen extends StatelessWidget {
           children: [
 
             CircleAvatar(
+              // ignore: deprecated_member_use
               backgroundColor: AppColors.primary.withOpacity(0.12),
               child: Icon(
                 icono,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/producto.dart';
+import '../widgets/producto_card.dart';
+import '../widgets/stock_status.dart';
 
 class DetalleProductoScreen extends StatelessWidget {
 
@@ -23,6 +25,8 @@ class DetalleProductoScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+
+            //Icono o imagen del producto
             const CircleAvatar(
               radius: 70,
               backgroundColor: Color(0xFFEADBC8),
@@ -33,44 +37,38 @@ class DetalleProductoScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    datoProducto(
-                      "Nombre",
-                      producto.nombre,
-                    ),
-                    datoProducto(
-                      "Código",
-                      producto.codigo,
-                    ),
-                    datoProducto(
-                      "Categoría",
-                      producto.categoria,
-                    ),
-                    datoProducto(
-                      "Precio",
-                      "L ${producto.precio.toStringAsFixed(2)}",
-                    ),
-                    datoProducto(
-                      "Cantidad",
-                      producto.cantidad.toString(),
-                    ),
-                  ],
-                ),
-              ),
+
+            ProductoCard(
+              nombre: producto.nombre,
+              codigo: producto.codigo,
+              categoria: producto.categoria,
+              precio: producto.precio,
+              cantidad: producto.cantidad,
+              esFavorito: false,
+              onFavorite: () {},
+              // Al tocar la tarjeta regresamo a la pantalla anterior.
+              onTap: () {
+                Navigator.pop(context);
+              },
+              mostrarEstado: true,
+              mostrarFavorito: false,
+              colorAccento: Colors.brown,
             ),
+
             const SizedBox(height: 30),
+              StockStatusWidget(
+                cantidad: producto.cantidad,
+                stockMinimo: 10,
+                titulo: 'Estado del inventario',
+              ),
+            const SizedBox(height: 30),
+            //Boton de editar producto
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
+                  //¿Podria ir aqui una funcion de editar producto?
+                  //Piensa Lia, piensaaa que son lqs 8 de la mañanaaa yaaaa!!
 
                 },
                 icon: const Icon(Icons.edit),
@@ -88,7 +86,13 @@ class DetalleProductoScreen extends StatelessWidget {
     );
   }
 
-  Widget datoProducto(String titulo, String valor){
+}
+
+// -- GUARDAR -- //
+
+/* Lo dejo aqui porque va me equivoco y no sirve lo de rriba, aunque para eso esta el control de versiones va, pero X.
+
+Widget datoProducto(String titulo, String valor){
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
@@ -118,4 +122,4 @@ class DetalleProductoScreen extends StatelessWidget {
 
   }
 
-}
+*/
