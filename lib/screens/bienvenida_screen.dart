@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inventario_application_1/screens/login_screen.dart';
+import 'package:inventario_application_1/utils/app_colors.dart';
 
 class BienvenidaScreen extends StatelessWidget{
   const BienvenidaScreen({super.key});
@@ -27,7 +27,7 @@ class BienvenidaScreen extends StatelessWidget{
                 style: TextStyle(
                   fontSize: 36, 
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF8B5E00),
+                  color: AppColors.primary,
                 ),
               ),
               SizedBox(height: 10),
@@ -54,14 +54,10 @@ class BienvenidaScreen extends StatelessWidget{
                 height:50, 
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context, 
-                      MaterialPageRoute(builder: (context) => LoginScreen()
-                      ),
-                    );
+                   Navigator.pushNamed(context, '/login');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF8B5E00),
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),

@@ -250,9 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
 
     final List<Widget> pantallas = [
-      DashboardScreen(
-        cambiarPagina: cambiarPagina,
-      ),
+      const DashboardScreen(),
       const InventarioScreen(),
       const CategoriasScreen(),
       const AgregarProductoScreen(),
@@ -408,13 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.bar_chart),
               title: const Text('Estadísticas'),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const EstadisticasScreen(),
-                  ),
-                );
+               Navigator.pushNamed(context, '/estadisticas');
               },
             ),
             const Divider(),
@@ -434,12 +426,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
+                Navigator.pushNamedAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const BienvenidaScreen(),
-                  ),
+                  '/bienvenida',
                   (route) => false,
                 );
               },

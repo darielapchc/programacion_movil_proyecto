@@ -25,11 +25,10 @@ class _LoginScreenState extends State<LoginScreen> {
   //Pendiente de hacer la validaciones
   void iniciarSesion() {
     if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacement(
+      Navigator.pushNamedAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
+        '/home',
+        (route) => false,
       );
     }
   }
