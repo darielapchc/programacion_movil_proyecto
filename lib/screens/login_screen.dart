@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Importación relativa simplificada
 import '../widgets/campo_texto.dart';
 import '../widgets/boton_principal.dart';
 
