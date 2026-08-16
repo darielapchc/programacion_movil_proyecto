@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_application_1/screens/agregar_producto_screen.dart';
 import 'package:inventario_application_1/screens/categoria_screen.dart';
-import 'package:inventario_application_1/screens/dashboard_screen.dart';
 import 'package:inventario_application_1/screens/detalle_producto_screen.dart';
 import 'package:inventario_application_1/screens/estadisticas_screen.dart';
 import 'package:inventario_application_1/screens/home_screen.dart';

@@ -3,8 +3,6 @@ import 'dashboard_screen.dart';
 import 'inventario_screen.dart';
 import 'categoria_screen.dart';
 import 'agregar_producto_screen.dart';
-import 'estadisticas_screen.dart';
-import 'bienvenida_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/snackbar_helper.dart';
 import '../widgets/campo_texto.dart';
