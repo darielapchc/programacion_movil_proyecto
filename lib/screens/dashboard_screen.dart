@@ -1,53 +1,51 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/menu_card.dart';
-import 'perfil_screen.dart';
-import 'estadisticas_screen.dart';
 import '../widgets/stock_status.dart';
 
 class DashboardScreen extends StatelessWidget {
-  final Function(int) cambiarPagina;
-
-  const DashboardScreen({
-    super.key,
-    required this.cambiarPagina,
-  });
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ancho = MediaQuery.of(context).size.width;
+
+    final int columnas = ancho > 600 ? 3 : 2;
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // Encabezado
+            // ==========================================================
+            // ENCABEZADO
+            // ==========================================================
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "¡Hola!",
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.text,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "¡Hola!",
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.text,
+                        ),
                       ),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    Text(
-                      "Bienvenida a LNE Stock",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
+                      const SizedBox(height: 5),
+                      Text(
+                        "Bienvenida a LNE Stock",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 // Botón de perfil
@@ -60,12 +58,7 @@ class DashboardScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                     onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                          builder: (_) => const PerfilScreen(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, '/perfil');
                     },
                   ),
                 ),
@@ -74,7 +67,9 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 25),
 
-            // Título
+            // ==========================================================
+            // RESUMEN DEL INVENTARIO
+            // ==========================================================
             const Text(
               "Resumen del inventario",
               style: TextStyle(
@@ -89,7 +84,6 @@ class DashboardScreen extends StatelessWidget {
             // Estadísticas
             Row(
               children: [
-
                 Expanded(
                   child: _estadisticaCard(
                     icono: Icons.inventory_2,
@@ -97,9 +91,7 @@ class DashboardScreen extends StatelessWidget {
                     cantidad: "125",
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: _estadisticaCard(
                     icono: Icons.warning_amber_rounded,
@@ -112,6 +104,7 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
+            // Estado del stock
             const StockStatusWidget(
               cantidad: 8,
               stockMinimo: 10,
@@ -119,8 +112,10 @@ class DashboardScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 30),
-            
 
+            // ==========================================================
+            // ACCESOS RÁPIDOS
+            // ==========================================================
             const Text(
               "Accesos rápidos",
               style: TextStyle(
@@ -134,40 +129,50 @@ class DashboardScreen extends StatelessWidget {
 
             // Cards principales
             GridView.count(
-              crossAxisCount: 2,
+              crossAxisCount: columnas,
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-
+                // Inventario
                 MenuCard(
                   titulo: "Inventario",
                   icono: Icons.inventory_2,
-                  onTap: () => cambiarPagina(1),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/inventario');
+                  },
                 ),
 
+                // Categorías
                 MenuCard(
                   titulo: "Categorías",
                   icono: Icons.category,
-                  onTap: () => cambiarPagina(2),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/categorias');
+                  },
                 ),
 
+                // Agregar producto
                 MenuCard(
                   titulo: "Agregar",
                   icono: Icons.add_box,
-                  onTap: () => cambiarPagina(3),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/agregar-producto',
+                    );
+                  },
                 ),
 
+                // Estadísticas
                 MenuCard(
                   titulo: "Estadísticas",
                   icono: Icons.bar_chart,
                   onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                        builder: (_) => const EstadisticasScreen(),
-                      ),
+                    Navigator.pushNamed(
+                      context,
+                      '/estadisticas',
                     );
                   },
                 ),
@@ -179,7 +184,9 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // Widget para las estadísticas
+  // ==========================================================
+  // WIDGET PARA LAS ESTADÍSTICAS
+  // ==========================================================
   Widget _estadisticaCard({
     required IconData icono,
     required String titulo,
@@ -192,14 +199,12 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             CircleAvatar(
-              // ignore: deprecated_member_use
-              backgroundColor: AppColors.primary.withOpacity(0.12),
+              backgroundColor:
+                  AppColors.primary.withValues(alpha: 0.12),
               child: Icon(
                 icono,
                 color: AppColors.primary,
@@ -218,6 +223,7 @@ class DashboardScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 3),
+
             Text(
               titulo,
               style: const TextStyle(

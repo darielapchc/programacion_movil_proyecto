@@ -3,8 +3,6 @@ import 'dashboard_screen.dart';
 import 'inventario_screen.dart';
 import 'categoria_screen.dart';
 import 'agregar_producto_screen.dart';
-import 'estadisticas_screen.dart';
-import 'bienvenida_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/snackbar_helper.dart';
 import '../widgets/campo_texto.dart';
@@ -250,9 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
 
     final List<Widget> pantallas = [
-      DashboardScreen(
-        cambiarPagina: cambiarPagina,
-      ),
+      const DashboardScreen(),
       const InventarioScreen(),
       const CategoriasScreen(),
       const AgregarProductoScreen(),
@@ -408,13 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.bar_chart),
               title: const Text('Estadísticas'),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const EstadisticasScreen(),
-                  ),
-                );
+               Navigator.pushNamed(context, '/estadisticas');
               },
             ),
             const Divider(),
@@ -434,12 +424,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
+                Navigator.pushNamedAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const BienvenidaScreen(),
-                  ),
+                  '/bienvenida',
                   (route) => false,
                 );
               },

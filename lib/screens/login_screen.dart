@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Importación relativa simplificada
 import '../widgets/campo_texto.dart';
 import '../widgets/boton_principal.dart';
 
@@ -25,11 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
   //Pendiente de hacer la validaciones
   void iniciarSesion() {
     if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacement(
+      Navigator.pushNamedAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
+        '/home',
+        (route) => false,
       );
     }
   }
