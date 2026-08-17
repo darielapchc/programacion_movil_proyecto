@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Icon(
                     Icons.inventory_2,
                     size: 90,
-                    color: Color(0xFF8B5E3C),
+                    color: AppColors.primary,
                   ),
                   const SizedBox(height: 15),
                   const Text(

@@ -82,7 +82,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     child: Icon(
                       Icons.add_photo_alternate,
                       size: 45,
-                      color: Color(0xFF8B5E3C),
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
