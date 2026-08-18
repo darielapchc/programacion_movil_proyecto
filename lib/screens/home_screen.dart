@@ -23,9 +23,21 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController cantidadController = TextEditingController();
 
   void cambiarPagina(int index) {
-    setState(() {
-      paginaActual = index;
-    });
+    if (index == 3){
+      _cerrarSeccion();
+    } else {
+      setState(() {
+        paginaActual = index;
+      });
+    }
+  }
+
+  void _cerrarSeccion(){
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/bienvenida',
+      (route) => false,
+    );
   }
 
   void mostrarFormularioNuevoProducto() {
