@@ -467,9 +467,10 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Categorías',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_outlined),
-            activeIcon: Icon(Icons.add_box),
-            label: 'Agregar',
+            icon: Icon(Icons.logout),
+            activeIcon: Icon(Icons.logout_sharp),
+            label: 'Cerrar sesión',
+            
           ),
         ],
       ),
