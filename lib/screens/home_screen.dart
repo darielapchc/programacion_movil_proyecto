@@ -23,9 +23,21 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController cantidadController = TextEditingController();
 
   void cambiarPagina(int index) {
-    setState(() {
-      paginaActual = index;
-    });
+    if (index == 3){
+      _cerrarSeccion();
+    } else {
+      setState(() {
+        paginaActual = index;
+      });
+    }
+  }
+
+  void _cerrarSeccion(){
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/bienvenida',
+      (route) => false,
+    );
   }
 
   void mostrarFormularioNuevoProducto() {
@@ -467,9 +479,10 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Categorías',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_outlined),
-            activeIcon: Icon(Icons.add_box),
-            label: 'Agregar',
+            icon: Icon(Icons.logout),
+            activeIcon: Icon(Icons.logout_sharp),
+            label: 'Cerrar sesión',
+            
           ),
         ],
       ),
