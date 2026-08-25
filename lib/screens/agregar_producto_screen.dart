@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/campo_texto.dart';
 import '../widgets/boton_principal.dart';
+import '../utils/app_colors.dart';
 
 class AgregarProductoScreen extends StatefulWidget {
   const AgregarProductoScreen({super.key});
@@ -62,7 +63,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
       backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
         title: const Text("Agregar Producto"),
-        backgroundColor: const Color(0xFF8B5E3C),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
@@ -81,7 +82,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     child: Icon(
                       Icons.add_photo_alternate,
                       size: 45,
-                      color: Color(0xFF8B5E3C),
+                      color: AppColors.primary,
                     ),
                   ),
                 ),

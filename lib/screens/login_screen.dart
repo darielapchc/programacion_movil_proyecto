@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inventario_application_1/utils/app_colors.dart';
 import '../widgets/campo_texto.dart';
 import '../widgets/boton_principal.dart';
 
@@ -37,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF8B5E3C),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         centerTitle: true,
         title: const Text("Iniciar Sesión"),
@@ -54,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Icon(
                     Icons.inventory_2,
                     size: 90,
-                    color: Color(0xFF8B5E3C),
+                    color: AppColors.primary,
                   ),
                   const SizedBox(height: 15),
                   const Text(
