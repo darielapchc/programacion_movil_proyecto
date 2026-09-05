@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inventario_application_1/screens/splash_screen.dart'; 
 import 'package:inventario_application_1/screens/agregar_producto_screen.dart';
 import 'package:inventario_application_1/screens/categoria_screen.dart';
 import 'package:inventario_application_1/screens/detalle_producto_screen.dart';
@@ -25,24 +26,24 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-      ),
+          seedColor: AppColors.primary,
+        ),
         scaffoldBackgroundColor: AppColors.background,
       ),
-      initialRoute: '/bienvenida',
+      initialRoute: '/', 
 
       routes: {
-        '/bienvenida':(context) => const BienvenidaScreen(),
+        '/': (context) => const SplashScreen(), 
+        '/bienvenida': (context) => const BienvenidaScreen(),
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
         '/inventario': (context) => const InventarioScreen(),
-        '/categorias':(context) => const CategoriasScreen(),
-        '/agregar-producto':(context) => const AgregarProductoScreen(),
-        '/detalle':(context) => const DetalleProductoScreen(),
-        '/perfil':(context) => const PerfilScreen(),
-        '/estadisticas':(context) => const EstadisticasScreen(),
+        '/categorias': (context) => const CategoriasScreen(),
+        '/agregar-producto': (context) => const AgregarProductoScreen(),
+        '/detalle': (context) => const DetalleProductoScreen(),
+        '/perfil': (context) => const PerfilScreen(),
+        '/estadisticas': (context) => const EstadisticasScreen(),
       },
     );
   }
 }
-
