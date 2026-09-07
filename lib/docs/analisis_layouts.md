@@ -4,7 +4,7 @@
 
 ### Implementación de Layouts y Navegación Completa del Proyecto
 
-**Estudiante:** Lia Jael  
+**Estudiantes:** Lia Maradiaga; Isis Pacheco
 **Proyecto:** LNE Stock — Sistema de Control de Inventario  
 **Curso:** CCC218 — Programación Móvil  
 **Docente:** Ing. Reynaldo Cruz  
