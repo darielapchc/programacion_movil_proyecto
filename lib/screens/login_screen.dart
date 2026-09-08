@@ -52,11 +52,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.inventory_2,
-                    size: 90,
-                    color: AppColors.primary,
-                  ),
+ 
+              Image.asset(
+                'assets/images/logoApp.png',
+                width:150,
+                height:100,
+              ),
                   const SizedBox(height: 15),
                   const Text(
                     "Bienvenido",

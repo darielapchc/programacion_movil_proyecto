@@ -16,7 +16,7 @@ class BienvenidaScreen extends StatelessWidget{
             children:[ 
               //Logo 
               Image.asset(
-                'assets/images/logo.png',
+                'assets/images/logoApp.png',
                 width:150,
                 height:100,
               ),

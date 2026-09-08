@@ -13,7 +13,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Lógica para navegar automáticamente después de 3 segundos
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 6), () {
       if (mounted) {
         // Navega a Bienvenida y elimina la Splash del historial
         Navigator.pushReplacementNamed(context, '/bienvenida');
@@ -29,14 +29,12 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Reutilizamos tu logo que ya tienes en Bienvenida
-            Image.asset(
-              'assets/images/logo.png',
-              width: 180, // Un poco más grande
-              height: 120,
-            ),
-            const SizedBox(height: 20),
-            // Opcional: Un indicador de carga discreto
+              Image.asset(
+                'assets/images/logoApp.png',
+                width:150,
+                height:100,
+              ),           
+              const SizedBox(height: 20),
             const CircularProgressIndicator(
               color: AppColors.primary,
             ),
