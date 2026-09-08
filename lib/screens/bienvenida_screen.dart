@@ -29,7 +29,7 @@ class BienvenidaScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset('assets/images/logoApp.png', width: tamanoLogo, height: tamanoLogo * .67, fit: BoxFit.contain),
+                        Image.asset('assets/images/logo.png', width: tamanoLogo, height: tamanoLogo * .67, fit: BoxFit.contain),
                         SizedBox(height: compacto ? 12 : 25),
                         Text('LNE Stock', style: TextStyle(fontSize: constraints.maxWidth < 360 ? 30 : 36, fontWeight: FontWeight.bold, color: AppColors.primary)),
                         const SizedBox(height: 10),
