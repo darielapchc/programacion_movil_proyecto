@@ -138,7 +138,6 @@ class _InventarioScreenState extends State<InventarioScreen> {
     );
   }
 
-  // Navega al detalle mediante una ruta con nombre.
   void _verDetalleProducto(Map<String, dynamic> producto) {
     final Producto productoModelo = _convertirAProducto(producto);
 
@@ -574,159 +573,138 @@ class _InventarioScreenState extends State<InventarioScreen> {
     buscadorController.dispose();
     super.dispose();
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-
-      appBar: AppBar(
-        title: const Text(
-          'Inventario',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+@override
+Widget build(BuildContext context) {
+  return Container(
+    color: AppColors.background,
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Productos disponibles',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: AppColors.text,
+            ),
           ),
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+          const SizedBox(height: 6),
 
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Productos disponibles',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text,
-              ),
+          const Text(
+            'Consulta y busca los productos registrados.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF5F5F5F),
             ),
+          ),
 
-            const SizedBox(height: 6),
+          const SizedBox(height: 18),
 
-            const Text(
-              'Consulta y busca los productos registrados.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF5F5F5F),
+          // BUSCADOR
+          TextField(
+            controller: buscadorController,
+            decoration: InputDecoration(
+              hintText: 'Buscar producto...',
+              prefixIcon: const Icon(
+                Icons.search,
+                color: AppColors.primary,
               ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // BUSCADOR
-            TextField(
-              controller: buscadorController,
-              decoration: InputDecoration(
-                hintText: 'Buscar producto...',
-
-                prefixIcon: const Icon(
-                  Icons.search,
+              suffixIcon: buscadorController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        buscadorController.clear();
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: const BorderSide(
                   color: AppColors.primary,
-                ),
-
-                suffixIcon:
-                    buscadorController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              buscadorController.clear();
-                            },
-                          )
-                        : null,
-
-                filled: true,
-                fillColor: Colors.white,
-
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
+                  width: 2,
                 ),
               ),
             ),
+          ),
 
-            const SizedBox(height: 18),
+          const SizedBox(height: 18),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
                   '${productosFiltrados.length} productos encontrados',
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF5F5F5F),
                   ),
                 ),
+              ),
 
-                // Selector de vista.
-                Row(
-                  children: [
-                    IconButton(
-                      tooltip: 'Vista de lista',
-                      onPressed: () {
-                        setState(() {
-                          mostrarGrid = false;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.view_list,
-                        color: !mostrarGrid
-                            ? AppColors.primary
-                            : Colors.grey,
-                      ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Vista de lista',
+                    onPressed: () {
+                      setState(() {
+                        mostrarGrid = false;
+                      });
+                    },
+                    icon: Icon(
+                      Icons.view_list,
+                      color: !mostrarGrid
+                          ? AppColors.primary
+                          : Colors.grey,
                     ),
+                  ),
 
-                    IconButton(
-                      tooltip: 'Vista de cuadrícula',
-                      onPressed: () {
-                        setState(() {
-                          mostrarGrid = true;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.grid_view,
-                        color: mostrarGrid
-                            ? AppColors.primary
-                            : Colors.grey,
-                      ),
+                  IconButton(
+                    tooltip: 'Vista de cuadrícula',
+                    onPressed: () {
+                      setState(() {
+                        mostrarGrid = true;
+                      });
+                    },
+                    icon: Icon(
+                      Icons.grid_view,
+                      color: mostrarGrid
+                          ? AppColors.primary
+                          : Colors.grey,
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 5),
-
-            // Column + Expanded + contenido scrolleable.
-            Expanded(
-              child: productosFiltrados.isEmpty
-                  ? _sinResultados()
-                  : mostrarGrid
-                      ? _construirGrid()
-                      : _construirLista(),
-            ),
-          ],
-        ),
+          const SizedBox(height: 5),
+          Expanded(
+            child: productosFiltrados.isEmpty
+                ? _sinResultados()
+                : mostrarGrid
+                    ? _construirGrid()
+                    : _construirLista(),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+} 
 }

@@ -64,6 +64,9 @@ class ProductoCard extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        minLeadingWidth: 0,
+        horizontalTitleGap: 10,
 
         leading: CircleAvatar(
           // ignore: deprecated_member_use
