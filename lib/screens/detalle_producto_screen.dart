@@ -32,9 +32,10 @@ class DetalleProductoScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Imagen del producto
-            Container(
-              width: double.infinity,
-              height: 220,
+            AspectRatio(
+              aspectRatio: 1.65,
+              child: Container(
+                width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -59,6 +60,7 @@ class DetalleProductoScreen extends StatelessWidget {
                       size: 90,
                       color: AppColors.primary,
                     ),
+              ),
             ),
 
             const SizedBox(height: 25),

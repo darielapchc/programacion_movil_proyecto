@@ -405,7 +405,8 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   // Construye la cuadrícula de productos.
   Widget _construirGrid() {
-    final double ancho = MediaQuery.of(context).size.width;
+    final size = MediaQuery.sizeOf(context);
+    final double ancho = size.width;
 
     // Responsive:
     // teléfono = 2 columnas
@@ -419,7 +420,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
         crossAxisCount: columnas,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.72,
+        childAspectRatio: size.width > size.height ? 0.95 : 0.72,
       ),
       itemBuilder: (context, index) {
         final producto = productosFiltrados[index];
@@ -573,35 +574,42 @@ class _InventarioScreenState extends State<InventarioScreen> {
     buscadorController.dispose();
     super.dispose();
   }
-@override
-Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  final bool pantallaPequena = size.height < 700;
+  final bool anchoPequeno = size.width < 420;
+  final double padding = anchoPequeno ? 12 : 20;
+  final double espacioGrande = pantallaPequena ? 8 : 18;
+  final double espacioTitulo = pantallaPequena ? 2 : 6;
+
   return Container(
     color: AppColors.background,
     child: Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Productos disponibles',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: pantallaPequena ? 20 : 22,
               fontWeight: FontWeight.bold,
               color: AppColors.text,
             ),
           ),
 
-          const SizedBox(height: 6),
+          SizedBox(height: espacioTitulo),
 
-          const Text(
+          Text(
             'Consulta y busca los productos registrados.',
             style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF5F5F5F),
+              color: const Color(0xFF5F5F5F),
             ),
           ),
 
-          const SizedBox(height: 18),
+          SizedBox(height: espacioGrande),
 
           // BUSCADOR
           TextField(
@@ -640,13 +648,15 @@ Widget build(BuildContext context) {
             ),
           ),
 
-          const SizedBox(height: 18),
+          SizedBox(height: pantallaPequena ? 8 : 18),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 2,
             children: [
-              Flexible(
-                child: Text(
+              Text(
                   '${productosFiltrados.length} productos encontrados',
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -655,13 +665,16 @@ Widget build(BuildContext context) {
                     color: Color(0xFF5F5F5F),
                   ),
                 ),
-              ),
-
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
                     tooltip: 'Vista de lista',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 40,
+                    ),
                     onPressed: () {
                       setState(() {
                         mostrarGrid = false;
@@ -677,6 +690,11 @@ Widget build(BuildContext context) {
 
                   IconButton(
                     tooltip: 'Vista de cuadrícula',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 40,
+                    ),
                     onPressed: () {
                       setState(() {
                         mostrarGrid = true;
@@ -694,7 +712,8 @@ Widget build(BuildContext context) {
             ],
           ),
 
-          const SizedBox(height: 5),
+          SizedBox(height: pantallaPequena ? 2 : 5),
+
           Expanded(
             child: productosFiltrados.isEmpty
                 ? _sinResultados()
@@ -706,5 +725,5 @@ Widget build(BuildContext context) {
       ),
     ),
   );
-} 
+}
 }

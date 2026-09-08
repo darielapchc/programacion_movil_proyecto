@@ -35,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double anchoLogo = MediaQuery.sizeOf(context).width.clamp(110.0, 180.0);
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
@@ -55,8 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
  
               Image.asset(
                 'assets/images/logoApp.png',
-                width:150,
-                height:100,
+                width: anchoLogo,
+                height: anchoLogo * 0.67,
               ),
                   const SizedBox(height: 15),
                   const Text(

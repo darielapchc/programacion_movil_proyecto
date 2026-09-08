@@ -23,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double anchoLogo = MediaQuery.sizeOf(context).width.clamp(110.0, 180.0);
     return Scaffold(
       backgroundColor: Colors.white, // Fondo limpio para resaltar el logo
       body: Center(
@@ -31,8 +32,8 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
               Image.asset(
                 'assets/images/logoApp.png',
-                width:150,
-                height:100,
+                width: anchoLogo,
+                height: anchoLogo * 0.67,
               ),           
               const SizedBox(height: 20),
             const CircularProgressIndicator(

@@ -8,14 +8,15 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ancho = MediaQuery.of(context).size.width;
-
-    final int columnas = ancho > 600 ? 3 : 2;
-
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool compacto = constraints.maxWidth < 420;
+          final int columnas = constraints.maxWidth > 700 ? 4 : constraints.maxWidth > 520 ? 3 : 2;
+          final double anchoContenido = constraints.maxWidth - (compacto ? 28 : 40);
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(compacto ? 14 : 20),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ==========================================================
@@ -82,17 +83,20 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 15),
 
             // Estadísticas
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                Expanded(
+                SizedBox(
+                  width: compacto ? anchoContenido : (anchoContenido - 12) / 2,
                   child: _estadisticaCard(
                     icono: Icons.inventory_2,
                     titulo: "Productos",
                     cantidad: "125",
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+                SizedBox(
+                  width: compacto ? anchoContenido : (anchoContenido - 12) / 2,
                   child: _estadisticaCard(
                     icono: Icons.warning_amber_rounded,
                     titulo: "Stock bajo",
@@ -178,8 +182,10 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
