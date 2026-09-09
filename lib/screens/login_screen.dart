@@ -53,9 +53,8 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
- 
               Image.asset(
-                'assets/images/logoApp.png',
+                'assets/images/logo.png',
                 width: anchoLogo,
                 height: anchoLogo * 0.67,
               ),

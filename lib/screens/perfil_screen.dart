@@ -79,12 +79,6 @@ class PerfilScreen extends StatelessWidget {
             ),
 
             _informacionCard(
-              icono: Icons.email_outlined,
-              titulo: 'Correo electrónico',
-              valor: 'usuario@lnestock.com',
-            ),
-
-            _informacionCard(
               icono: Icons.badge_outlined,
               titulo: 'Rol',
               valor: 'Administrador',

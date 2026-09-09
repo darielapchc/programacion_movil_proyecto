@@ -17,13 +17,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int paginaActual = 0;
-
   void cambiarPagina(int index) {
+    if (index < 0 || index > 3) return;
+
     setState(() {
       paginaActual = index;
     });
   }
-
   void _cerrarSesion() {
     Navigator.pushNamedAndRemoveUntil(
       context,
@@ -31,26 +31,21 @@ class _HomeScreenState extends State<HomeScreen> {
       (route) => false,
     );
   }
-
   void mostrarFormularioNuevoProducto() {
     final formKey = GlobalKey<FormState>();
-
     final nombreController = TextEditingController();
     final codigoController = TextEditingController();
     final precioController = TextEditingController();
     final cantidadController = TextEditingController();
-
     String? categoriaSeleccionada;
-
     final List<String> categorias = [
-      "Cuadernos",
-      "Papelería",
-      "Lápices",
-      "Arte",
-      "Oficina",
-      "Tecnología",
+      'Cuadernos',
+      'Papelería',
+      'Lápices',
+      'Arte',
+      'Oficina',
+      'Tecnología',
     ];
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -71,112 +66,148 @@ class _HomeScreenState extends State<HomeScreen> {
                   top: Radius.circular(25),
                 ),
               ),
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 45,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade400,
-                            borderRadius: BorderRadius.circular(10),
+              child: SafeArea(
+                top: false,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Indicador superior
+                        Center(
+                          child: Container(
+                            width: 45,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Nuevo producto',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      CampoTexto(
-                        label: "Nombre",
-                        icono: Icons.inventory,
-                        controlador: nombreController,
-                        validator: (value) =>
-                            (value == null || value.isEmpty) ? "Ingrese el nombre" : null,
-                      ),
-                      const SizedBox(height: 15),
-                      CampoTexto(
-                        label: "Código",
-                        icono: Icons.qr_code,
-                        controlador: codigoController,
-                        validator: (value) =>
-                            (value == null || value.isEmpty) ? "Ingrese el código" : null,
-                      ),
-                      const SizedBox(height: 15),
-                      DropdownButtonFormField<String>(
-                        value: categoriaSeleccionada,
-                        decoration: InputDecoration(
-                          labelText: "Categoría",
-                          prefixIcon: const Icon(Icons.category),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Nuevo producto',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
                           ),
                         ),
-                        items: categorias.map((categoria) {
-                          return DropdownMenuItem<String>(
-                            value: categoria,
-                            child: Text(categoria),
-                          );
-                        }).toList(),
-                        onChanged: (valor) {
-                          setModalState(() {
-                            categoriaSeleccionada = valor;
-                          });
-                        },
-                        validator: (value) =>
-                            value == null ? "Seleccione una categoría" : null,
-                      ),
-                      const SizedBox(height: 15),
-                      CampoTexto(
-                        label: "Precio",
-                        icono: Icons.attach_money,
-                        controlador: precioController,
-                        validator: (value) =>
-                            (value == null || value.isEmpty) ? "Ingrese el precio" : null,
-                      ),
-                      const SizedBox(height: 15),
-                      CampoTexto(
-                        label: "Cantidad",
-                        icono: Icons.numbers,
-                        controlador: cantidadController,
-                        validator: (value) =>
-                            (value == null || value.isEmpty) ? "Ingrese la cantidad" : null,
-                      ),
-                      const SizedBox(height: 20),
-                      BotonPrincipal(
-                        texto: "Guardar Producto",
-                        onPressed: () {
-                          if (formKey.currentState!.validate()) {
-                            Navigator.pop(bottomSheetContext);
-                            SnackBarHelper.mostrarConAccion(
-                              this.context,
-                              mensaje: '${nombreController.text} preparado para agregar',
-                              onVer: () => cambiarPagina(1),
+                        const SizedBox(height: 20),
+                        // Nombre
+                        CampoTexto(
+                          label: 'Nombre',
+                          icono: Icons.inventory,
+                          controlador: nombreController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese el nombre';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        // Código
+                        CampoTexto(
+                          label: 'Código',
+                          icono: Icons.qr_code,
+                          controlador: codigoController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese el código';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        // Categoría
+                        DropdownButtonFormField<String>(
+                          value: categoriaSeleccionada,
+                          decoration: InputDecoration(
+                            labelText: 'Categoría',
+                            prefixIcon: const Icon(Icons.category),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                          items: categorias.map((categoria) {
+                            return DropdownMenuItem<String>(
+                              value: categoria,
+                              child: Text(categoria),
                             );
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () => Navigator.pop(bottomSheetContext),
-                        child: const Text(
-                          'Cancelar',
-                          style: TextStyle(color: AppColors.primary),
+                          }).toList(),
+                          onChanged: (valor) {
+                            setModalState(() {
+                              categoriaSeleccionada = valor;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Seleccione una categoría';
+                            }
+                            return null;
+                          },
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 15),
+                        // Precio
+                        CampoTexto(
+                          label: 'Precio',
+                          icono: Icons.attach_money,
+                          controlador: precioController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese el precio';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        // Cantidad
+                        CampoTexto(
+                          label: 'Cantidad',
+                          icono: Icons.numbers,
+                          controlador: cantidadController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese la cantidad';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        // Guardar
+                        BotonPrincipal(
+                          texto: 'Guardar Producto',
+                          onPressed: () {
+                            if (formKey.currentState!.validate()) {
+                              Navigator.pop(bottomSheetContext);
+                              SnackBarHelper.mostrarConAccion(
+                                this.context,
+                                mensaje:
+                                    '${nombreController.text} preparado para agregar',
+                                onVer: () => cambiarPagina(1),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        // Cancelar
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(bottomSheetContext);
+                          },
+                          child: const Text(
+                            'Cancelar',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -190,12 +221,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pantallas = [
-      const DashboardScreen(),
+      DashboardScreen(
+        onNavigate: cambiarPagina,
+      ),
       const InventarioScreen(),
       const CategoriasScreen(),
       const AgregarProductoScreen(),
     ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('LNE Stock'),
@@ -206,27 +238,39 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
+            // Encabezado
             Container(
-              height: 210,
               width: double.infinity,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
+                  colors: [
+                    AppColors.primary,
+                    AppColors.secondary,
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
               ),
               child: const SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    15,
+                    20,
+                    15,
+                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       CircleAvatar(
                         radius: 25,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.person, size: 28, color: AppColors.primary),
+                        child: Icon(
+                          Icons.person,
+                          size: 28,
+                          color: AppColors.primary,
+                        ),
                       ),
                       SizedBox(height: 8),
                       Text(
@@ -240,7 +284,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       SizedBox(height: 2),
                       Text(
                         'Sistema de inventario',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -250,6 +297,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Inicio'),
+              selected: paginaActual == 0,
+              selectedColor: AppColors.primary,
               onTap: () {
                 cambiarPagina(0);
                 Navigator.pop(context);
@@ -258,6 +307,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.inventory_2),
               title: const Text('Inventario'),
+              selected: paginaActual == 1,
+              selectedColor: AppColors.primary,
               onTap: () {
                 cambiarPagina(1);
                 Navigator.pop(context);
@@ -268,7 +319,8 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Categorías'),
               children: [
                 ListTile(
-                  contentPadding: const EdgeInsets.only(left: 70),
+                  contentPadding:
+                      const EdgeInsets.only(left: 70),
                   leading: const Icon(Icons.school),
                   title: const Text('Útiles escolares'),
                   onTap: () {
@@ -277,7 +329,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 ListTile(
-                  contentPadding: const EdgeInsets.only(left: 70),
+                  contentPadding:
+                      const EdgeInsets.only(left: 70),
                   leading: const Icon(Icons.edit),
                   title: const Text('Papelería'),
                   onTap: () {
@@ -290,6 +343,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.add_box),
               title: const Text('Agregar producto'),
+              selected: paginaActual == 3,
+              selectedColor: AppColors.primary,
               onTap: () {
                 cambiarPagina(3);
                 Navigator.pop(context);
@@ -300,47 +355,65 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Estadísticas'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/estadisticas');
+
+                Navigator.pushNamed(
+                  context,
+                  '/estadisticas',
+                );
               },
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.red,
+              ),
               title: const Text(
                 'Cerrar sesión',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               onTap: _cerrarSesion,
             ),
           ],
         ),
       ),
+
       body: IndexedStack(
         index: paginaActual,
         children: pantallas,
       ),
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: paginaActual,
         onTap: cambiarPagina,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        elevation: 8,
+
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Inicio',
           ),
+
           BottomNavigationBarItem(
             icon: Icon(Icons.inventory_2_outlined),
             activeIcon: Icon(Icons.inventory_2),
             label: 'Inventario',
           ),
+
           BottomNavigationBarItem(
             icon: Icon(Icons.category_outlined),
             activeIcon: Icon(Icons.category),
             label: 'Categorías',
           ),
+
           BottomNavigationBarItem(
             icon: Icon(Icons.add_box_outlined),
             activeIcon: Icon(Icons.add_box),
