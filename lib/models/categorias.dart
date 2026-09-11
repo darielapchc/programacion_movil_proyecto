@@ -1,7 +1,12 @@
+//import 'dart:js_interop';
+//import 'package:flutter/material.dart';
+
 class Categorias {
   final int id;
   final String nombre;
   final String descripcion;
+  final String icono;
+  final bool activo;
   final String icono;
   final bool activo;
 
