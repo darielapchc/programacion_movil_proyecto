@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
-import '../widgets/campo_texto.dart';
+
+import '../core/api_client.dart';
+import '../core/storage_service.dart';
+import '../models/categorias.dart';
+import '../services/categoria_service.dart';
+import '../services/producto_service.dart';
+import '../utils/app_colors.dart';
 import '../widgets/boton_principal.dart';
+import '../widgets/campo_texto.dart';
 
 class AgregarProductoScreen extends StatefulWidget {
   const AgregarProductoScreen({super.key});
@@ -10,160 +17,156 @@ class AgregarProductoScreen extends StatefulWidget {
 }
 
 class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final form = GlobalKey<FormState>();
+  final n = TextEditingController();
+  final d = TextEditingController();
+  final c = TextEditingController();
+  final p = TextEditingController();
+  final s = TextEditingController();
 
-  final nombreController = TextEditingController();
-  final codigoController = TextEditingController();
-  final precioController = TextEditingController();
-  final cantidadController = TextEditingController();
-
-  String? categoriaSeleccionada;
-
-  final List<String> categorias = [
-    "Cuadernos",
-    "Papelería",
-    "Lápices",
-    "Arte",
-    "Oficina",
-    "Tecnología",
-  ];
+  List<Categorias> cats = [];
+  int? cat;
+  bool loading = true;
+  bool saving = false;
 
   @override
-  void dispose() {
-    nombreController.dispose();
-    codigoController.dispose();
-    precioController.dispose();
-    cantidadController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _load();
   }
 
-  void guardarProducto() {
-    if (_formKey.currentState!.validate()) {
-      if (categoriaSeleccionada == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Seleccione una categoría"),
-          ),
-        );
-        return;
+  Future<void> _load() async {
+    try {
+      if ((await StorageService().getUser())?.role == 'admin') {
+        cats = await CategoriaService().listarActivas();
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Producto agregado correctamente"),
-        ),
-      );
-      Navigator.pop(context);
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    n.dispose();
+    d.dispose();
+    c.dispose();
+    p.dispose();
+    s.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!form.currentState!.validate() || cat == null) {
+      return;
+    }
+
+    setState(() => saving = true);
+
+    try {
+      await ProductoService().crear({
+        'nombre': n.text,
+        'descripcion': d.text,
+        'codigo': c.text,
+        'precio': double.parse(p.text),
+        'stock': int.parse(s.text),
+        'imagen': null,
+        'categoriaId': cat,
+      });
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext x) {
+    if (loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
-        title: const Text("Agregar Producto"),
-        backgroundColor: const Color(0xFF8B5E3C),
+        title: const Text('Agregar Producto'),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Center(
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Color(0xFFEADBC8),
-                    child: Icon(
-                      Icons.add_photo_alternate,
-                      size: 45,
-                      color: Color(0xFF8B5E3C),
-                    ),
-                  ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: form,
+          child: Column(
+            children: [
+              CampoTexto(
+                label: 'Nombre',
+                icono: Icons.inventory,
+                controlador: n,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese el nombre' : null,
+              ),
+              const SizedBox(height: 12),
+              CampoTexto(
+                label: 'Descripción',
+                icono: Icons.description,
+                controlador: d,
+              ),
+              const SizedBox(height: 12),
+              CampoTexto(
+                label: 'Código',
+                icono: Icons.qr_code,
+                controlador: c,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese el código' : null,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                initialValue: cat,
+                decoration: const InputDecoration(
+                  labelText: 'Categoría',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 25),
-                CampoTexto(
-                  label: "Nombre",
-                  icono: Icons.inventory,
-                  controlador: nombreController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Ingrese el nombre";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                CampoTexto(
-                  label: "Código",
-                  icono: Icons.qr_code,
-                  controlador: codigoController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Ingrese el código";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                DropdownButtonFormField<String>(
-                  // ignore: deprecated_member_use
-                  value: categoriaSeleccionada,
-                  decoration: InputDecoration(
-                    labelText: "Categoría",
-                    prefixIcon: const Icon(Icons.category),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  items: categorias.map((categoria) {
-                    return DropdownMenuItem(
-                      value: categoria,
-                      child: Text(categoria),
-                    );
-                  }).toList(),
-                  onChanged: (valor) {
-                    setState(() {
-                      categoriaSeleccionada = valor;
-                    });
-                  },
-                ),
-                const SizedBox(height: 15),
-                CampoTexto(
-                  label: "Precio",
-                  icono: Icons.attach_money,
-                  controlador: precioController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Ingrese el precio";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                CampoTexto(
-                  label: "Cantidad",
-                  icono: Icons.numbers,
-                  controlador: cantidadController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Ingrese la cantidad";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 30),
-                BotonPrincipal(
-                  texto: "Guardar Producto",
-                  onPressed: guardarProducto,
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+                items: cats
+                    .map(
+                      (e) =>
+                          DropdownMenuItem(value: e.id, child: Text(e.nombre)),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => cat = v),
+                validator: (v) => v == null ? 'Seleccione una categoría' : null,
+              ),
+              const SizedBox(height: 12),
+              CampoTexto(
+                label: 'Precio',
+                icono: Icons.attach_money,
+                controlador: p,
+                validator: (v) =>
+                    double.tryParse(v ?? '') == null ? 'Precio inválido' : null,
+              ),
+              const SizedBox(height: 12),
+              CampoTexto(
+                label: 'Stock',
+                icono: Icons.numbers,
+                controlador: s,
+                validator: (v) =>
+                    int.tryParse(v ?? '') == null ? 'Stock inválido' : null,
+              ),
+              const SizedBox(height: 20),
+              saving
+                  ? const CircularProgressIndicator()
+                  : BotonPrincipal(texto: 'Guardar Producto', onPressed: _save),
+            ],
           ),
         ),
       ),

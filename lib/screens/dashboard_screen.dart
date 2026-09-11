@@ -1,234 +1,126 @@
 import 'package:flutter/material.dart';
+import '../core/api_client.dart';
+import '../core/api_config.dart';
+import '../models/producto.dart';
+import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
-import '../widgets/menu_card.dart';
-import 'perfil_screen.dart';
-import 'estadisticas_screen.dart';
-import '../widgets/stock_status.dart';
 
-class DashboardScreen extends StatelessWidget {
-  final Function(int) cambiarPagina;
+class DashboardScreen extends StatefulWidget {
+  final ValueChanged<int>? onNavigate;
+  const DashboardScreen({super.key, this.onNavigate});
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
 
-  const DashboardScreen({
-    super.key,
-    required this.cambiarPagina,
-  });
+class _DashboardScreenState extends State<DashboardScreen> {
+  List<Producto> products = [];
+  bool loading = true;
+  String? error;
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final p = await ProductoService().listar();
+      if (mounted) {
+        setState(() {
+          products = p;
+          loading = false;
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          error = e.message;
+          loading = false;
+        });
+      }
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
+  Widget build(BuildContext c) {
+    final low = products
+        .where((p) => p.stock < ApiConfig.lowStockThreshold)
+        .length;
+    final total = products.fold<int>(0, (s, p) => s + p.stock);
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            // Encabezado
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '¡Hola!',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.text,
+            ),
+          ),
+          const Text('Bienvenida a LNE Stock', style: TextStyle(fontSize: 17)),
+          const SizedBox(height: 25),
+          const Text(
+            'Resumen del inventario',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 15),
+          loading
+              ? const Center(child: CircularProgressIndicator())
+              : error != null
+              ? Text(error!)
+              : Row(
                   children: [
-                    const Text(
-                      "¡Hola!",
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.text,
+                    Expanded(
+                      child: _card(
+                        'Productos',
+                        '${products.length}',
+                        Icons.inventory_2,
                       ),
                     ),
-
-                    const SizedBox(height: 5),
-
-                    Text(
-                      "Bienvenida a LNE Stock",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
-                      ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _card('Stock bajo', '$low', Icons.warning_amber),
                     ),
                   ],
                 ),
-
-                // Botón de perfil
-                CircleAvatar(
-                  radius: 25,
-                  backgroundColor: AppColors.primary,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                          builder: (_) => const PerfilScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 25),
-
-            // Título
-            const Text(
-              "Resumen del inventario",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // Estadísticas
-            Row(
-              children: [
-
-                Expanded(
-                  child: _estadisticaCard(
-                    icono: Icons.inventory_2,
-                    titulo: "Productos",
-                    cantidad: "125",
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: _estadisticaCard(
-                    icono: Icons.warning_amber_rounded,
-                    titulo: "Stock bajo",
-                    cantidad: "8",
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            const StockStatusWidget(
-              cantidad: 8,
-              stockMinimo: 10,
-              titulo: 'Resumen del stock',
-            ),
-
-            const SizedBox(height: 30),
-            
-
-            const Text(
-              "Accesos rápidos",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // Cards principales
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-
-                MenuCard(
-                  titulo: "Inventario",
-                  icono: Icons.inventory_2,
-                  onTap: () => cambiarPagina(1),
-                ),
-
-                MenuCard(
-                  titulo: "Categorías",
-                  icono: Icons.category,
-                  onTap: () => cambiarPagina(2),
-                ),
-
-                MenuCard(
-                  titulo: "Agregar",
-                  icono: Icons.add_box,
-                  onTap: () => cambiarPagina(3),
-                ),
-
-                MenuCard(
-                  titulo: "Estadísticas",
-                  icono: Icons.bar_chart,
-                  onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                        builder: (_) => const EstadisticasScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+          const SizedBox(height: 15),
+          _card('Stock total', '$total unidades', Icons.stacked_bar_chart),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => widget.onNavigate?.call(1),
+            icon: const Icon(Icons.inventory),
+            label: const Text('Ver inventario'),
+          ),
+        ],
       ),
     );
   }
 
-  // Widget para las estadísticas
-  Widget _estadisticaCard({
-    required IconData icono,
-    required String titulo,
-    required String cantidad,
-  }) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+  Widget _card(String t, String v, IconData i) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Row(
+        children: [
+          Icon(i, color: AppColors.primary, size: 30),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t),
+              Text(
+                v,
+                style: const TextStyle(
+                  fontSize: 23,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            CircleAvatar(
-              // ignore: deprecated_member_use
-              backgroundColor: AppColors.primary.withOpacity(0.12),
-              child: Icon(
-                icono,
-                color: AppColors.primary,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Text(
-              cantidad,
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-
-            const SizedBox(height: 3),
-            Text(
-              titulo,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.text,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }
