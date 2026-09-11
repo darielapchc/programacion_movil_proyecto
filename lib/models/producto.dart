@@ -7,51 +7,62 @@ class Producto {
   final String codigo;
   final double precio;
   final int stock;
-  final String? imagen;
+  final String imagen;
   final int? categoriaId;
   final Categorias? categoria;
 
-  Producto({
+  const Producto({
     required this.id,
     required this.nombre,
     this.descripcion = '',
     required this.codigo,
     required this.precio,
     required this.stock,
-    this.imagen,
+    this.imagen = '',
     this.categoriaId,
     this.categoria,
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
-    final value = json['stock'] ?? json['cantidad'] ?? 0;
+    final rawCategory = json['categoria'];
+
     return Producto(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      nombre: (json['nombre'] ?? '').toString(),
-      descripcion: (json['descripcion'] ?? '').toString(),
-      codigo: (json['codigo'] ?? '').toString(),
-      precio: double.tryParse('${json['precio'] ?? 0}') ?? 0,
-      stock: value is num ? value.toInt() : int.tryParse('$value') ?? 0,
-      imagen: json['imagen']?.toString(),
-      categoriaId: (json['categoriaId'] as num?)?.toInt(),
-      categoria: json['categoria'] is Map
-          ? Categorias.fromJson(
-              Map<String, dynamic>.from(json['categoria'] as Map),
-            )
+      id: _toInt(json['id']),
+      nombre: '${json['nombre'] ?? ''}',
+      descripcion: '${json['descripcion'] ?? ''}',
+      codigo: '${json['codigo'] ?? ''}',
+      precio: _toDouble(json['precio']),
+      stock: _toInt(json['stock'] ?? json['cantidad']),
+      imagen: '${json['imagen'] ?? ''}',
+      categoriaId: json['categoriaId'] == null && json['idCategoria'] == null
+          ? null
+          : _toInt(json['categoriaId'] ?? json['idCategoria']),
+      categoria: rawCategory is Map
+          ? Categorias.fromJson(rawCategory.cast<String, dynamic>())
           : null,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'nombre': nombre,
-    'descripcion': descripcion,
-    'codigo': codigo,
-    'precio': precio,
-    'stock': stock,
-    'imagen': imagen,
-    'categoriaId': categoriaId,
-  };
+  Map<String, dynamic> toJson() {
+    return {
+      'nombre': nombre,
+      'descripcion': descripcion,
+      'codigo': codigo,
+      'precio': precio,
+      'stock': stock,
+      'imagen': imagen,
+      'categoriaId': categoriaId,
+    };
+  }
 
+  int get cantidad => stock;
   String get categoriaNombre => categoria?.nombre ?? '';
+}
+
+int _toInt(dynamic value) {
+  return value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+}
+
+double _toDouble(dynamic value) {
+  return value is num ? value.toDouble() : double.tryParse('$value') ?? 0;
 }

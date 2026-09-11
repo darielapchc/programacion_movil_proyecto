@@ -1,76 +1,107 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+
 import 'api_config.dart';
 import 'storage_service.dart';
 
 class ApiException implements Exception {
-  final int? statusCode;
   final String message;
-  ApiException(this.message, {this.statusCode});
+
+  const ApiException(this.message);
+
+  @override
+  String toString() => message;
 }
 
 class ApiClient {
-  final StorageService storage;
-  ApiClient({StorageService? storage}) : storage = storage ?? StorageService();
-  Future<dynamic> get(String path, {Map<String, String>? queryParameters}) =>
-      _request('GET', path, queryParameters: queryParameters);
-  Future<dynamic> post(String path, {Map<String, dynamic>? body}) =>
-      _request('POST', path, body: body);
-  Future<dynamic> put(String path, {Map<String, dynamic>? body}) =>
-      _request('PUT', path, body: body);
-  Future<dynamic> delete(String path) => _request('DELETE', path);
-  Future<dynamic> _request(
-    String method,
-    String path, {
-    Map<String, dynamic>? body,
-    Map<String, String>? queryParameters,
-  }) async {
-    final uri = Uri.parse(
-      '${ApiConfig.baseUrl}/api$path',
-    ).replace(queryParameters: queryParameters);
-    final token = await storage.getToken();
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
-    }
+  ApiClient._() {
+    dio = Dio(
+      BaseOptions(
+        baseUrl: ApiConfig.baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 15),
+        headers: const {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ),
+    );
+
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await storage.getToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          handler.next(options);
+        },
+      ),
+    );
+  }
+
+  static final ApiClient instance = ApiClient._();
+
+  late final Dio dio;
+  final StorageService storage = StorageService();
+
+  Future<Response<dynamic>> get(String path) async {
+    return _request(() => dio.get(path));
+  }
+
+  Future<Response<dynamic>> post(String path, {Object? data}) async {
+    return _request(() => dio.post(path, data: data));
+  }
+
+  Future<Response<dynamic>> put(String path, {Object? data}) async {
+    return _request(() => dio.put(path, data: data));
+  }
+
+  Future<Response<dynamic>> delete(String path) async {
+    return _request(() => dio.delete(path));
+  }
+
+  Future<Response<dynamic>> _request(
+    Future<Response<dynamic>> Function() call,
+  ) async {
     try {
-      final response = await switch (method) {
-        'GET' => http.get(uri, headers: headers),
-        'POST' => http.post(
-          uri,
-          headers: headers,
-          body: jsonEncode(body ?? {}),
-        ),
-        'PUT' => http.put(uri, headers: headers, body: jsonEncode(body ?? {})),
-        'DELETE' => http.delete(uri, headers: headers),
-        _ => throw ApiException('Método HTTP no soportado'),
-      };
-      dynamic decoded;
-      if (response.body.isNotEmpty) decoded = jsonDecode(response.body);
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return decoded;
-      }
-      final message = decoded is Map<String, dynamic>
-          ? (decoded['message'] ?? decoded['error'] ?? 'Error del servidor')
-                .toString()
-          : 'Error del servidor';
-      throw ApiException(message, statusCode: response.statusCode);
-    } on SocketException {
-      throw ApiException('No fue posible conectar con el servidor.');
-    } on http.ClientException {
-      throw ApiException('No fue posible conectar con el servidor.');
-    } on FormatException {
-      throw ApiException('El servidor devolvió una respuesta inválida.');
+      return await call();
+    } on DioException catch (error) {
+      throw ApiException(_messageFor(error));
     }
   }
 
-  static List<dynamic> asList(dynamic response) {
-    if (response is List) return response;
-    if (response is Map<String, dynamic>) {
-      final value = response['data'] ?? response['items'] ?? response['rows'];
-      if (value is List) return value;
+  String _messageFor(DioException error) {
+    if (error.type == DioExceptionType.connectionError) {
+      return 'No se pudo conectar con el servidor.';
     }
-    return const [];
+
+    if ({
+      DioExceptionType.connectionTimeout,
+      DioExceptionType.receiveTimeout,
+      DioExceptionType.sendTimeout,
+    }.contains(error.type)) {
+      return 'El servidor tardó demasiado en responder.';
+    }
+
+    switch (error.response?.statusCode) {
+      case 401:
+        return 'Sesión expirada o no autorizada.';
+      case 403:
+        return 'No tienes permisos para realizar esta acción.';
+      case 404:
+        return 'Recurso no encontrado.';
+      case 500:
+        return 'Ocurrió un error en el servidor.';
+      default:
+        return 'No se pudo completar la solicitud.';
+    }
   }
+}
+
+dynamic responsePayload(dynamic data) {
+  if (data is Map<String, dynamic> && data['data'] != null) {
+    return data['data'];
+  }
+  return data;
 }

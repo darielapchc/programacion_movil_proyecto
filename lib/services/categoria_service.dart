@@ -2,15 +2,22 @@ import '../core/api_client.dart';
 import '../models/categorias.dart';
 
 class CategoriaService {
-  final ApiClient client;
-  CategoriaService({ApiClient? client}) : client = client ?? ApiClient();
-  Future<List<Categorias>> listarActivas() async =>
-      ApiClient.asList(
-            await client.get(
-              '/categorias',
-              queryParameters: {'activo': 'true'},
-            ),
-          )
-          .map((e) => Categorias.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList();
+  final ApiClient api;
+
+  CategoriaService({ApiClient? api}) : api = api ?? ApiClient.instance;
+
+  Future<List<Categorias>> listarCategorias() async {
+    final response = await api.get('/categorias');
+    final payload = responsePayload(response.data);
+    final list = payload is List
+        ? payload
+        : payload is Map && payload['rows'] is List
+            ? payload['rows'] as List
+            : const [];
+
+    return list
+        .whereType<Map>()
+        .map((item) => Categorias.fromJson(item.cast<String, dynamic>()))
+        .toList();
+  }
 }

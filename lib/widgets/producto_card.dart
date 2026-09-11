@@ -27,21 +27,11 @@ class ProductoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool agotado = cantidad == 0;
     final bool bajo = cantidad > 0 && cantidad <= 5;
-    final String estado = agotado
-        ? 'Agotado'
-        : bajo
-        ? 'Stock bajo'
-        : 'Disponible';
-    final Color estadoColor = agotado
-        ? Colors.red
-        : bajo
-        ? Colors.orange
-        : Colors.green;
+    final String estado = agotado ? 'Agotado' : bajo ? 'Stock bajo' : 'Disponible';
+    final Color estadoColor = agotado ? Colors.red : bajo ? Colors.orange : Colors.green;
     final IconData estadoIcon = agotado
         ? Icons.error_outline
-        : bajo
-        ? Icons.warning_amber_rounded
-        : Icons.check_circle_outline;
+        : bajo ? Icons.warning_amber_rounded : Icons.check_circle_outline;
 
     return Card(
       elevation: 3,
@@ -56,7 +46,7 @@ class ProductoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                backgroundColor: colorAccento.withValues(alpha: 0.15),
+                backgroundColor: colorAccento.withOpacity(0.15),
                 child: Icon(Icons.inventory_2, color: colorAccento),
               ),
               const SizedBox(width: 10),
@@ -64,33 +54,18 @@ class ProductoCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      nombre,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Código: $codigo',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      'Categoría: $categoria',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text(nombre, maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Código: $codigo', maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text('Categoría: $categoria', maxLines: 1, overflow: TextOverflow.ellipsis),
                     Text('Cantidad: $cantidad'),
                     Text('Precio: L. ${precio.toStringAsFixed(2)}'),
                     if (mostrarEstado)
                       Container(
                         margin: const EdgeInsets.only(top: 6),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: estadoColor.withValues(alpha: 0.12),
+                          color: estadoColor.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Wrap(
@@ -98,13 +73,7 @@ class ProductoCard extends StatelessWidget {
                           spacing: 4,
                           children: [
                             Icon(estadoIcon, size: 16, color: estadoColor),
-                            Text(
-                              estado,
-                              style: TextStyle(
-                                color: estadoColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            Text(estado, style: TextStyle(color: estadoColor, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -116,10 +85,8 @@ class ProductoCard extends StatelessWidget {
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   tooltip: 'Favorito',
-                  icon: Icon(
-                    esFavorito ? Icons.favorite : Icons.favorite_border,
-                    color: esFavorito ? Colors.red : Colors.grey,
-                  ),
+                  icon: Icon(esFavorito ? Icons.favorite : Icons.favorite_border,
+                      color: esFavorito ? Colors.red : Colors.grey),
                   onPressed: onFavorite,
                 ),
               const Padding(

@@ -6,7 +6,7 @@ class MovimientoInventario {
   final int productoId;
   final int usuarioId;
 
-  MovimientoInventario({
+  const MovimientoInventario({
     required this.id,
     required this.tipoMovimiento,
     required this.cantidad,
@@ -15,13 +15,31 @@ class MovimientoInventario {
     required this.usuarioId,
   });
 
-  factory MovimientoInventario.fromJson(Map<String, dynamic> json) =>
-      MovimientoInventario(
-        id: (json['id'] as num?)?.toInt() ?? 0,
-        tipoMovimiento: (json['tipoMovimiento'] ?? '').toString().toUpperCase(),
-        cantidad: (json['cantidad'] as num?)?.toInt() ?? 0,
-        fecha: (json['fecha'] ?? '').toString(),
-        productoId: (json['productoId'] as num?)?.toInt() ?? 0,
-        usuarioId: (json['usuarioId'] as num?)?.toInt() ?? 0,
-      );
+  factory MovimientoInventario.fromJson(Map<String, dynamic> json) {
+    return MovimientoInventario(
+      id: _toInt(json['id'] ?? json['idMovimiento']),
+      tipoMovimiento: '${json['tipoMovimiento'] ?? ''}',
+      cantidad: _toInt(json['cantidad']),
+      fecha: '${json['fecha'] ?? ''}',
+      productoId: _toInt(json['productoId'] ?? json['idProducto']),
+      usuarioId: _toInt(json['usuarioId'] ?? json['idUsuario']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'tipoMovimiento': tipoMovimiento,
+      'cantidad': cantidad,
+      'productoId': productoId,
+      'usuarioId': usuarioId,
+    };
+  }
+
+  int get idMovimiento => id;
+  int get idProducto => productoId;
+  int get idUsuario => usuarioId;
+}
+
+int _toInt(dynamic value) {
+  return value is num ? value.toInt() : int.tryParse('$value') ?? 0;
 }

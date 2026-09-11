@@ -4,24 +4,37 @@ class Usuario {
   final String email;
   final String role;
 
-  Usuario({
+  const Usuario({
     required this.id,
     required this.fullName,
     required this.email,
     required this.role,
   });
 
-  factory Usuario.fromJson(Map<String, dynamic> json) => Usuario(
-    id: (json['id'] as num?)?.toInt() ?? 0,
-    fullName: (json['fullName'] ?? json['nombre'] ?? '').toString(),
-    email: (json['email'] ?? json['correo'] ?? '').toString(),
-    role: (json['role'] ?? json['rol'] ?? '').toString(),
-  );
+  factory Usuario.fromJson(Map<String, dynamic> json) {
+    return Usuario(
+      id: _toInt(json['id'] ?? json['idUsuario']),
+      fullName: '${json['fullName'] ?? json['nombre'] ?? ''}',
+      email: '${json['email'] ?? json['correo'] ?? ''}',
+      role: '${json['role'] ?? json['rol'] ?? ''}',
+    );
+  }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'fullName': fullName,
-    'email': email,
-    'role': role,
-  };
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'fullName': fullName,
+      'email': email,
+      'role': role,
+    };
+  }
+
+  int get idUsuario => id;
+  String get nombre => fullName;
+  String get correo => email;
+  String get rol => role;
+}
+
+int _toInt(dynamic value) {
+  return value is num ? value.toInt() : int.tryParse('$value') ?? 0;
 }
