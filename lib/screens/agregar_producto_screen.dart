@@ -1,9 +1,16 @@
-import 'dart:io'; // 1. IMPORTANTE
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // 1. IMPORTANTE
-import '../widgets/campo_texto.dart';
-import '../widgets/boton_principal.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../core/api_client.dart';
+import '../models/categorias.dart';
+import '../models/producto.dart';
+import '../services/categoria_service.dart';
+import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/boton_principal.dart';
+import '../widgets/campo_texto.dart';
 
 class AgregarProductoScreen extends StatefulWidget {
   const AgregarProductoScreen({super.key});
@@ -21,6 +28,11 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   final cantidadController = TextEditingController();
 
   String? categoriaSeleccionada;
+  List<Categorias> categoriasApi = [];
+  bool _cargandoCategorias = true;
+  bool _guardando = false;
+  final CategoriaService _categoriaService = CategoriaService();
+  final ProductoService _productoService = ProductoService();
 
   // 2. Variable para guardar la imagen seleccionada
   File? _imagenSeleccionada; 
@@ -34,6 +46,31 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
     "Oficina",
     "Tecnología",
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarCategorias();
+  }
+
+  Future<void> _cargarCategorias() async {
+    try {
+      final result = await _categoriaService.listarCategorias();
+      if (mounted) {
+        setState(() {
+          categoriasApi = result;
+          _cargandoCategorias = false;
+        });
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        setState(() => _cargandoCategorias = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -85,8 +122,8 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
     );
   }
 
-  void guardarProducto() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> guardarProducto() async {
+    if (_formKey.currentState!.validate() && categoriaSeleccionada != null && !_guardando) {
       if (categoriaSeleccionada == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Seleccione una categoría")),
@@ -102,10 +139,33 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
       //   return;
       // }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Producto agregado correctamente")),
-      );
-      Navigator.pop(context);
+      setState(() => _guardando = true);
+      try {
+        await _productoService.crearProducto(
+          Producto(
+            id: 0,
+            nombre: nombreController.text.trim(),
+            codigo: codigoController.text.trim(),
+            precio: double.tryParse(precioController.text.trim()) ?? 0,
+            stock: int.tryParse(cantidadController.text.trim()) ?? 0,
+            imagen: _imagenSeleccionada?.path ?? '',
+            categoriaId: int.tryParse(categoriaSeleccionada!),
+          ),
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Producto agregado correctamente")),
+        );
+        Navigator.pop(context);
+      } on ApiException catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.message)),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _guardando = false);
+      }
     }
   }
 
@@ -189,10 +249,10 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                  items: categorias.map((categoria) {
+                  items: categoriasApi.map((categoria) {
                     return DropdownMenuItem(
-                      value: categoria,
-                      child: Text(categoria),
+                      value: categoria.id.toString(),
+                      child: Text(categoria.nombre),
                     );
                   }).toList(),
                   onChanged: (valor) {
@@ -228,7 +288,9 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                 const SizedBox(height: 30),
                 BotonPrincipal(
                   texto: "Guardar Producto",
-                  onPressed: guardarProducto,
+                  onPressed: _guardando || _cargandoCategorias
+                      ? () {}
+                      : guardarProducto,
                 ),
                 const SizedBox(height: 20),
               ],

@@ -1,44 +1,68 @@
-// modelo_producto.dart
+import 'categorias.dart';
+
 class Producto {
   final int id;
   final String nombre;
-  final String categoria; // O idCategoria según backend
+  final String descripcion;
   final String codigo;
   final double precio;
-  final int cantidad;
+  final int stock;
   final String imagen;
+  final int? categoriaId;
+  final Categorias? categoria;
 
-  Producto({
+  const Producto({
     required this.id,
     required this.nombre,
-    required this.categoria,
+    this.descripcion = '',
     required this.codigo,
     required this.precio,
-    required this.cantidad,
-    required this.imagen,
+    required this.stock,
+    this.imagen = '',
+    this.categoriaId,
+    this.categoria,
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
+    final rawCategory = json['categoria'];
+
     return Producto(
-      id: json['id'] ?? 0,
-      nombre: json['nombre'] ?? '',
-      categoria: json['categoria'] ?? '',
-      codigo: json['codigo'] ?? '',
-      precio: (json['precio'] as num?)?.toDouble() ?? 0.0,
-      cantidad: json['cantidad'] ?? 0,
-      imagen: json['imagen'] ?? '',
+      id: _toInt(json['id']),
+      nombre: '${json['nombre'] ?? ''}',
+      descripcion: '${json['descripcion'] ?? ''}',
+      codigo: '${json['codigo'] ?? ''}',
+      precio: _toDouble(json['precio']),
+      stock: _toInt(json['stock'] ?? json['cantidad']),
+      imagen: '${json['imagen'] ?? ''}',
+      categoriaId: json['categoriaId'] == null && json['idCategoria'] == null
+          ? null
+          : _toInt(json['categoriaId'] ?? json['idCategoria']),
+      categoria: rawCategory is Map
+          ? Categorias.fromJson(rawCategory.cast<String, dynamic>())
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'nombre': nombre,
-      'categoria': categoria,
+      'descripcion': descripcion,
       'codigo': codigo,
       'precio': precio,
-      'cantidad': cantidad,
+      'stock': stock,
       'imagen': imagen,
+      'categoriaId': categoriaId,
     };
   }
+
+  int get cantidad => stock;
+  String get categoriaNombre => categoria?.nombre ?? '';
+}
+
+int _toInt(dynamic value) {
+  return value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+}
+
+double _toDouble(dynamic value) {
+  return value is num ? value.toDouble() : double.tryParse('$value') ?? 0;
 }

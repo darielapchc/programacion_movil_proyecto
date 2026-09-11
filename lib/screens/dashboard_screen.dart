@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+
+import '../core/api_client.dart';
+import '../models/producto.dart';
+import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/menu_card.dart';
 import '../widgets/stock_status.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final ValueChanged<int>? onNavigate;
 
   const DashboardScreen({
@@ -11,6 +15,34 @@ class DashboardScreen extends StatelessWidget {
     this.onNavigate,
   });
 
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  List<Producto> _productos = [];
+  bool _cargando = true;
+  @override
+  void initState() {
+    super.initState();
+    _cargar();
+  }
+
+  Future<void> _cargar() async {
+    try {
+      final data = await ProductoService().listarProductos();
+      if (!mounted) return;
+
+      setState(() {
+        _productos = data;
+        _cargando = false;
+      });
+    } on ApiException {
+      if (mounted) {
+        setState(() => _cargando = false);
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -93,7 +125,7 @@ class DashboardScreen extends StatelessWidget {
                       child: _estadisticaCard(
                         icono: Icons.inventory_2,
                         titulo: 'Productos',
-                        cantidad: '125',
+                        cantidad: _cargando ? '…' : '${_productos.length}',
                       ),
                     ),
 
@@ -103,14 +135,14 @@ class DashboardScreen extends StatelessWidget {
                       child: _estadisticaCard(
                         icono: Icons.warning_amber_rounded,
                         titulo: 'Stock bajo',
-                        cantidad: '8',
+                        cantidad: _cargando ? '…' : '${_productos.where((p) => p.stock < 10).length}',
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                const StockStatusWidget(
-                  cantidad: 8,
+                StockStatusWidget(
+                  cantidad: _productos.where((p) => p.stock < 10).length,
                   stockMinimo: 10,
                   titulo: 'Resumen del stock',
                 ),
@@ -139,7 +171,7 @@ class DashboardScreen extends StatelessWidget {
                       onTap: () {
                         // Utilizamos la navegación principal
                         // en lugar de pushNamed('/inventario').
-                        onNavigate?.call(1);
+                        widget.onNavigate?.call(1);
                       },
                     ),
 
@@ -148,7 +180,7 @@ class DashboardScreen extends StatelessWidget {
                       titulo: 'Categorías',
                       icono: Icons.category,
                       onTap: () {
-                        onNavigate?.call(2);
+                        widget.onNavigate?.call(2);
                       },
                     ),
 
@@ -157,7 +189,7 @@ class DashboardScreen extends StatelessWidget {
                       titulo: 'Agregar',
                       icono: Icons.add_box,
                       onTap: () {
-                        onNavigate?.call(3);
+                        widget.onNavigate?.call(3);
                       },
                     ),
 

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:inventario_application_1/utils/app_colors.dart';
+
+import '../core/api_client.dart';
+import '../services/auth_service.dart';
+import '../utils/app_colors.dart';
 import '../widgets/campo_texto.dart';
 import '../widgets/boton_principal.dart';
 
@@ -14,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController usuarioController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _cargando = false;
 
   @override
   void dispose() {
@@ -22,14 +26,17 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  //Pendiente de hacer la validaciones
-  void iniciarSesion() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/home',
-        (route) => false,
-      );
+  Future<void> iniciarSesion() async {
+    if (!_formKey.currentState!.validate() || _cargando) return;
+    setState(() => _cargando = true);
+    try {
+      await AuthService().login(usuarioController.text.trim(), passwordController.text);
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    } on ApiException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _cargando = false);
     }
   }
 
@@ -91,10 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     esPassword: true,
                   ),
                   const SizedBox(height: 35),
-                  BotonPrincipal(
-                    texto: "Ingresar",
-                    onPressed: iniciarSesion,
-                  ),
+                  _cargando
+                      ? const Center(child: CircularProgressIndicator())
+                      : BotonPrincipal(texto: "Ingresar", onPressed: iniciarSesion),
                   const SizedBox(height: 25),
                   const Text(
                     "Solo personal autorizado",

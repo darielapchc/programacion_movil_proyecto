@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+
+import '../services/auth_service.dart';
 import '../utils/app_colors.dart';
 
 class PerfilScreen extends StatelessWidget {
@@ -289,8 +291,9 @@ class PerfilScreen extends StatelessWidget {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
+                await AuthService().logout();
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/bienvenida',

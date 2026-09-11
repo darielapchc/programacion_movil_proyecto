@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../core/api_client.dart';
 import '../models/producto.dart';
+import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/producto_card.dart';
 
@@ -15,8 +18,14 @@ class _InventarioScreenState extends State<InventarioScreen> {
       TextEditingController();
 
   bool mostrarGrid = false;
+  bool _cargando = true;
+  String? _error;
+  final ProductoService _productoService = ProductoService();
 
   final List<Map<String, dynamic>> productos = [
+    /* Datos cargados desde la API en initState. */
+  ];
+  /*
     {
       'id': 1,
       'nombre': 'Cuaderno Amigo',
@@ -107,7 +116,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
       'cantidad': 80,
       'imagen': '',
     },
-  ];
+  ];*/
 
   List<Map<String, dynamic>> productosFiltrados = [];
 
@@ -117,20 +126,53 @@ class _InventarioScreenState extends State<InventarioScreen> {
   @override
   void initState() {
     super.initState();
-    productosFiltrados = List.from(productos);
     buscadorController.addListener(_buscarProducto);
+    _cargarProductos();
+  }
+
+  Future<void> _cargarProductos() async {
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+
+    try {
+      final data = await _productoService.listarProductos();
+      if (!mounted) return;
+
+      setState(() {
+        productos
+          ..clear()
+          ..addAll(data.map(_productoAmap));
+        productosFiltrados = List.from(productos);
+        _cargando = false;
+      });
+    } on ApiException catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = error.message;
+          _cargando = false;
+        });
+      }
+    }
+  }
+
+  Map<String, dynamic> _productoAmap(Producto producto) {
+    return {
+      'id': producto.id,
+      'nombre': producto.nombre,
+      'descripcion': producto.descripcion,
+      'categoriaId': producto.categoriaId,
+      'categoria': producto.categoriaNombre,
+      'codigo': producto.codigo,
+      'precio': producto.precio,
+      'cantidad': producto.stock,
+      'imagen': producto.imagen,
+    };
   }
 
   Producto _convertirAProducto(Map<String, dynamic> producto) {
-    return Producto(
-      id: producto['id'] ?? 0,
-      nombre: producto['nombre'],
-      categoria: producto['categoria'],
-      codigo: producto['codigo'],
-      precio: producto['precio'],
-      cantidad: producto['cantidad'],
-      imagen: producto['imagen'] ?? '',
-    );
+    return Producto.fromJson(producto);
   }
 
   void _verDetalleProducto(Map<String, dynamic> producto) {
@@ -213,27 +255,26 @@ class _InventarioScreenState extends State<InventarioScreen> {
     }
   }
 
-  void _eliminarProducto(Map<String, dynamic> producto) {
+  Future<void> _eliminarProducto(Map<String, dynamic> producto) async {
     final String codigo = producto['codigo'];
-    setState(() {
-      productos.removeWhere(
-        (item) => item['codigo'] == codigo,
-      );
-      productosFavoritos.remove(codigo);
-      productosFiltrados = productos.where((item) {
-        final texto =
-            buscadorController.text.toLowerCase();
-        final nombre =
-            item['nombre'].toString().toLowerCase();
-        final codigoProducto =
-            item['codigo'].toString().toLowerCase();
-        final categoria =
-            item['categoria'].toString().toLowerCase();
-        return nombre.contains(texto) ||
-            codigoProducto.contains(texto) ||
-            categoria.contains(texto);
-      }).toList();
-    });
+    try {
+      await _productoService.eliminarProducto(producto['id'] as int);
+      if (!mounted) return;
+      setState(() {
+        productos.removeWhere((item) => item['codigo'] == codigo);
+        productosFavoritos.remove(codigo);
+
+        final texto = buscadorController.text.toLowerCase();
+        productosFiltrados = productos.where((item) {
+          return item['nombre'].toString().toLowerCase().contains(texto) ||
+              item['codigo'].toString().toLowerCase().contains(texto) ||
+              item['categoria'].toString().toLowerCase().contains(texto);
+        }).toList();
+      });
+      _mostrarSnackBar(mensaje: '${producto['nombre']} eliminado correctamente.');
+    } on ApiException catch (error) {
+      if (mounted) _mostrarSnackBar(mensaje: error.message);
+    }
   }
 
   void _mostrarSnackBar({
@@ -341,11 +382,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
               );
               return false;
             }
-            _eliminarProducto(producto);
-            _mostrarSnackBar(
-              mensaje:
-                  '${producto['nombre']} eliminado correctamente.',
-            );
+            await _eliminarProducto(producto);
             return false;
           },
           child: GestureDetector(
@@ -663,7 +700,11 @@ Widget build(BuildContext context) {
                 ),
                 SizedBox(height: esHorizontal ? 6 : 8),
                 Expanded(
-                  child: productosFiltrados.isEmpty
+                  child: _cargando
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_error!, textAlign: TextAlign.center), const SizedBox(height: 12), OutlinedButton(onPressed: _cargarProductos, child: const Text('Reintentar'))]))
+                          : productosFiltrados.isEmpty
                       ? _sinResultados()
                       : mostrarGrid
                           ? _construirGrid()

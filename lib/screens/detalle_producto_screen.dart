@@ -88,7 +88,7 @@ class DetalleProductoScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                producto.categoria,
+                producto.categoriaNombre,
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
@@ -120,7 +120,7 @@ class DetalleProductoScreen extends StatelessWidget {
                     _datoProducto(
                       icono: Icons.category_outlined,
                       titulo: 'Categoría',
-                      valor: producto.categoria,
+                      valor: producto.categoriaNombre,
                     ),
 
                     const Divider(),

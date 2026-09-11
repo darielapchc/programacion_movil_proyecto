@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'dashboard_screen.dart';
 import 'inventario_screen.dart';
 import 'categoria_screen.dart';
 import 'agregar_producto_screen.dart';
+
+import '../services/auth_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/snackbar_helper.dart';
 import '../widgets/campo_texto.dart';
@@ -24,7 +27,9 @@ class _HomeScreenState extends State<HomeScreen> {
       paginaActual = index;
     });
   }
-  void _cerrarSesion() {
+  Future<void> _cerrarSesion() async {
+    await AuthService().logout();
+    if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(
       context,
       '/bienvenida',
