@@ -7,8 +7,6 @@ class Categorias {
   final String descripcion;
   final String icono;
   final bool activo;
-  final String icono;
-  final bool activo;
 
   const Categorias({
     required this.id,
