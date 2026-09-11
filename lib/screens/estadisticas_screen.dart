@@ -1,13 +1,61 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+
+import '../core/api_client.dart';
+import '../models/movimiento_inventario.dart';
+import '../models/producto.dart';
+import '../services/movimiento_service.dart';
+import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 
-class EstadisticasScreen extends StatelessWidget {
+class EstadisticasScreen extends StatefulWidget {
   const EstadisticasScreen({super.key});
 
   @override
+  State<EstadisticasScreen> createState() => _EstadisticasScreenState();
+}
+
+class _EstadisticasScreenState extends State<EstadisticasScreen> {
+  List<Producto> _productos = [];
+  List<MovimientoInventario> _movimientos = [];
+  bool _cargando = true;
+  @override
+  void initState() {
+    super.initState();
+    _cargar();
+  }
+
+  Future<void> _cargar() async {
+    try {
+      final results = await Future.wait([
+        ProductoService().listarProductos(),
+        MovimientoService().listarMovimientos(),
+      ]);
+      if (!mounted) return;
+
+      setState(() {
+        _productos = results[0] as List<Producto>;
+        _movimientos = results[1] as List<MovimientoInventario>;
+        _cargando = false;
+      });
+    } on ApiException {
+      if (mounted) {
+        setState(() => _cargando = false);
+      }
+    }
+  }
+
+  int _movimientosDe(String tipo) {
+    return _movimientos
+        .where((movimiento) =>
+            movimiento.tipoMovimiento.toLowerCase() == tipo)
+        .fold(0, (total, movimiento) => total + movimiento.cantidad);
+  }
+  @override
   Widget build(BuildContext context) {
+    final entradas = _movimientosDe('entrada');
+    final salidas = _movimientosDe('salida');
     return Scaffold(
       backgroundColor: AppColors.background,
 
@@ -58,7 +106,7 @@ class EstadisticasScreen extends StatelessWidget {
                   child: _estadisticaCard(
                     icono: Icons.inventory_2,
                     titulo: 'Productos',
-                    cantidad: '125',
+                    cantidad: _cargando ? '…' : '${_productos.length}',
                   ),
                 ),
 
@@ -68,7 +116,7 @@ class EstadisticasScreen extends StatelessWidget {
                   child: _estadisticaCard(
                     icono: Icons.warning_amber_rounded,
                     titulo: 'Stock bajo',
-                    cantidad: '8',
+                    cantidad: _cargando ? '…' : '${_productos.where((p) => p.stock < 10).length}',
                   ),
                 ),
               ],
@@ -84,7 +132,7 @@ class EstadisticasScreen extends StatelessWidget {
                   child: _estadisticaCard(
                     icono: Icons.arrow_downward,
                     titulo: 'Entradas',
-                    cantidad: '35',
+                    cantidad: _cargando ? '…' : '$entradas',
                   ),
                 ),
 
@@ -94,7 +142,7 @@ class EstadisticasScreen extends StatelessWidget {
                   child: _estadisticaCard(
                     icono: Icons.arrow_upward,
                     titulo: 'Salidas',
-                    cantidad: '18',
+                    cantidad: _cargando ? '…' : '$salidas',
                   ),
                 ),
               ],
@@ -125,8 +173,8 @@ class EstadisticasScreen extends StatelessWidget {
 
                     _barraMovimiento(
                       titulo: 'Entradas',
-                      cantidad: 35,
-                      maximo: 40,
+                      cantidad: entradas,
+                      maximo: entradas == 0 ? 1 : entradas,
                       icono: Icons.arrow_downward,
                     ),
 
@@ -134,8 +182,8 @@ class EstadisticasScreen extends StatelessWidget {
 
                     _barraMovimiento(
                       titulo: 'Salidas',
-                      cantidad: 18,
-                      maximo: 40,
+                      cantidad: salidas,
+                      maximo: salidas == 0 ? 1 : salidas,
                       icono: Icons.arrow_upward,
                     ),
                   ],

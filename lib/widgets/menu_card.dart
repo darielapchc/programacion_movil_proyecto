@@ -15,7 +15,12 @@ class MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double separacion = constraints.maxHeight < 130 ? 8 : 16;
+        final double radio = (constraints.maxWidth * .16).clamp(22.0, 32.0);
+
+        return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Card(
@@ -24,35 +29,40 @@ class MenuCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
+          child: Padding(
+          padding: EdgeInsets.all((constraints.maxWidth * .06).clamp(10.0, 18.0)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircleAvatar(
-                radius: 28,
+                radius: radio,
                 // ignore: deprecated_member_use
                 backgroundColor: AppColors.primary.withOpacity(.12),
                 child: Icon(
                   icono,
-                  size: 30,
+                  size: radio,
                   color: AppColors.primary,
                 ),
               ),
-              const SizedBox(height: 18),
-              Text(
+              SizedBox(height: separacion),
+              Flexible(
+                child: Text(
                 titulo,
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
                 ),
+                ),
               ),
-
             ],
           ),
         ),
       ),
+        );
+      },
     );
   }
 }

@@ -1,23 +1,12 @@
 import 'package:flutter/material.dart';
-//import '../models/producto.dart';
 
 class ProductoCard extends StatelessWidget {
-  //Datos obligatorio para los prodductos.
-  final String nombre;
-  final String codigo;
-  final String categoria;
+  final String nombre, codigo, categoria;
   final double precio;
   final int cantidad;
-
-  //Los que estableci como parametros opcionales
-  final bool mostrarEstado;
+  final bool mostrarEstado, esFavorito, mostrarFavorito;
   final Color colorAccento;
-
-  //Los famosos callbacks
-  final VoidCallback onTap; // Abrir detalle del producto
-  final VoidCallback onFavorite; //Ejecutar accion de poner el corazoncito como lo tenia anteriormente.
-  final bool esFavorito;
-  final bool mostrarFavorito;
+  final VoidCallback onTap, onFavorite;
 
   const ProductoCard({
     super.key,
@@ -36,113 +25,77 @@ class ProductoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    //Determinar el estado del inventario
-    String textoEstado = '';
-    Color colorEstado;
-    IconData iconoEstado;
-
-    if (cantidad == 0) {
-      textoEstado = 'Agotado';
-      colorEstado = Colors.red;
-      iconoEstado = Icons.error_outline;
-    } else if (cantidad <= 5) {
-      textoEstado = 'Stock bajo';
-      colorEstado = Colors.yellow;
-      iconoEstado = Icons.warning_amber_rounded;
-    } else {
-      textoEstado = 'Disponible';
-      colorEstado = Colors.green;
-      iconoEstado = Icons.check_circle_outline;
-    }
+    final bool agotado = cantidad == 0;
+    final bool bajo = cantidad > 0 && cantidad <= 5;
+    final String estado = agotado ? 'Agotado' : bajo ? 'Stock bajo' : 'Disponible';
+    final Color estadoColor = agotado ? Colors.red : bajo ? Colors.orange : Colors.green;
+    final IconData estadoIcon = agotado
+        ? Icons.error_outline
+        : bajo ? Icons.warning_amber_rounded : Icons.check_circle_outline;
 
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: ListTile(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
         onTap: onTap,
-
-        leading: CircleAvatar(
-          // ignore: deprecated_member_use
-          backgroundColor: colorAccento.withOpacity(0.15),
-          child: Icon(
-            Icons.inventory_2,
-            color: colorAccento,
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: colorAccento.withOpacity(0.15),
+                child: Icon(Icons.inventory_2, color: colorAccento),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(nombre, maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Código: $codigo', maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text('Categoría: $categoria', maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text('Cantidad: $cantidad'),
+                    Text('Precio: L. ${precio.toStringAsFixed(2)}'),
+                    if (mostrarEstado)
+                      Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: estadoColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
+                          children: [
+                            Icon(estadoIcon, size: 16, color: estadoColor),
+                            Text(estado, style: TextStyle(color: estadoColor, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              if (mostrarFavorito)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Favorito',
+                  icon: Icon(esFavorito ? Icons.favorite : Icons.favorite_border,
+                      color: esFavorito ? Colors.red : Colors.grey),
+                  onPressed: onFavorite,
+                ),
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: Icon(Icons.arrow_forward_ios, size: 16),
+              ),
+            ],
           ),
         ),
-
-        title: Text(
-          nombre,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Código: $codigo"),
-            Text("Categoría: $categoria"),
-            Text("Cantidad: $cantidad"),
-            Text("Precio: L. ${precio.toStringAsFixed(2)}"),
-
-            //Widget condicional
-            mostrarEstado 
-            ? Container(
-              margin: const EdgeInsets.only(top: 6),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                // ignore: deprecated_member_use
-                color: colorEstado.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    iconoEstado,
-                    size: 16,
-                    color: colorEstado,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    textoEstado,
-                    style: TextStyle(
-                      color: colorEstado,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            )
-            : const SizedBox.shrink(),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            //Aqui se encuentra la logica del corazoncito <3
-            if(mostrarFavorito)
-            IconButton(
-              tooltip: 'Favorito',
-              icon: Icon( 
-                esFavorito ? Icons.favorite : Icons.favorite_border,
-                color: esFavorito ? Colors.red : Colors.grey,
-              ),
-              onPressed: onFavorite,
-            ), 
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-            ),
-          ],
-        )
       ),
     );
   }

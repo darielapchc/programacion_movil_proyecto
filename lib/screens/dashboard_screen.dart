@@ -1,192 +1,243 @@
 import 'package:flutter/material.dart';
+
+import '../core/api_client.dart';
+import '../models/producto.dart';
+import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/menu_card.dart';
 import '../widgets/stock_status.dart';
 
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+class DashboardScreen extends StatefulWidget {
+  final ValueChanged<int>? onNavigate;
+
+  const DashboardScreen({
+    super.key,
+    this.onNavigate,
+  });
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  List<Producto> _productos = [];
+  bool _cargando = true;
+  @override
+  void initState() {
+    super.initState();
+    _cargar();
+  }
+
+  Future<void> _cargar() async {
+    try {
+      final data = await ProductoService().listarProductos();
+      if (!mounted) return;
+
+      setState(() {
+        _productos = data;
+        _cargando = false;
+      });
+    } on ApiException {
+      if (mounted) {
+        setState(() => _cargando = false);
+      }
+    }
+  }
+  @override
   Widget build(BuildContext context) {
-    final ancho = MediaQuery.of(context).size.width;
-
-    final int columnas = ancho > 600 ? 3 : 2;
-
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ==========================================================
-            // ENCABEZADO
-            // ==========================================================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "¡Hola!",
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.text,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        "Bienvenida a LNE Stock",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double ancho = constraints.maxWidth;
 
-                // Botón de perfil
-                CircleAvatar(
-                  radius: 25,
-                  backgroundColor: AppColors.primary,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.person,
-                      color: Colors.white,
+          // Márgenes adaptables
+          final double paddingHorizontal =
+              ancho < 500 ? 16 : ancho < 900 ? 24 : 32;
+
+          // Espaciado adaptable
+          final double espacio =
+              ancho < 500 ? 12 : ancho < 900 ? 16 : 20;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: paddingHorizontal,
+              vertical: 20,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '¡Hola!',
+                            style: TextStyle(
+                              fontSize: ancho < 500 ? 28 : 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.text,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Bienvenida a LNE Stock',
+                            style: TextStyle(
+                              fontSize: ancho < 500 ? 17 : 20,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/perfil');
-                    },
+                    // Perfil
+                    CircleAvatar(
+                      backgroundColor: AppColors.primary,
+                      radius: ancho < 500 ? 28 : 32,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/perfil');
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'Resumen del inventario',
+                  style: TextStyle(
+                    fontSize: ancho < 500 ? 24 : 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.text,
                   ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _estadisticaCard(
+                        icono: Icons.inventory_2,
+                        titulo: 'Productos',
+                        cantidad: _cargando ? '…' : '${_productos.length}',
+                      ),
+                    ),
+
+                    SizedBox(width: espacio),
+
+                    Expanded(
+                      child: _estadisticaCard(
+                        icono: Icons.warning_amber_rounded,
+                        titulo: 'Stock bajo',
+                        cantidad: _cargando ? '…' : '${_productos.where((p) => p.stock < 10).length}',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                StockStatusWidget(
+                  cantidad: _productos.where((p) => p.stock < 10).length,
+                  stockMinimo: 10,
+                  titulo: 'Resumen del stock',
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'Accesos rápidos',
+                  style: TextStyle(
+                    fontSize: ancho < 500 ? 24 : 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                GridView.count(
+                  crossAxisCount: _obtenerColumnas(ancho),
+                  crossAxisSpacing: espacio,
+                  mainAxisSpacing: espacio,
+                  childAspectRatio: _obtenerAspectRatio(ancho),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    // INVENTARIO
+                    MenuCard(
+                      titulo: 'Inventario',
+                      icono: Icons.inventory_2,
+                      onTap: () {
+                        // Utilizamos la navegación principal
+                        // en lugar de pushNamed('/inventario').
+                        widget.onNavigate?.call(1);
+                      },
+                    ),
+
+                    // CATEGORÍAS
+                    MenuCard(
+                      titulo: 'Categorías',
+                      icono: Icons.category,
+                      onTap: () {
+                        widget.onNavigate?.call(2);
+                      },
+                    ),
+
+                    // AGREGAR
+                    MenuCard(
+                      titulo: 'Agregar',
+                      icono: Icons.add_box,
+                      onTap: () {
+                        widget.onNavigate?.call(3);
+                      },
+                    ),
+
+                    // ESTADÍSTICAS
+                    MenuCard(
+                      titulo: 'Estadísticas',
+                      icono: Icons.bar_chart,
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/estadisticas',
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
-
-            const SizedBox(height: 25),
-
-            // ==========================================================
-            // RESUMEN DEL INVENTARIO
-            // ==========================================================
-            const Text(
-              "Resumen del inventario",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // Estadísticas
-            Row(
-              children: [
-                Expanded(
-                  child: _estadisticaCard(
-                    icono: Icons.inventory_2,
-                    titulo: "Productos",
-                    cantidad: "125",
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _estadisticaCard(
-                    icono: Icons.warning_amber_rounded,
-                    titulo: "Stock bajo",
-                    cantidad: "8",
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Estado del stock
-            const StockStatusWidget(
-              cantidad: 8,
-              stockMinimo: 10,
-              titulo: 'Resumen del stock',
-            ),
-
-            const SizedBox(height: 30),
-
-            // ==========================================================
-            // ACCESOS RÁPIDOS
-            // ==========================================================
-            const Text(
-              "Accesos rápidos",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.text,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // Cards principales
-            GridView.count(
-              crossAxisCount: columnas,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                // Inventario
-                MenuCard(
-                  titulo: "Inventario",
-                  icono: Icons.inventory_2,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/inventario');
-                  },
-                ),
-
-                // Categorías
-                MenuCard(
-                  titulo: "Categorías",
-                  icono: Icons.category,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/categorias');
-                  },
-                ),
-
-                // Agregar producto
-                MenuCard(
-                  titulo: "Agregar",
-                  icono: Icons.add_box,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/agregar-producto',
-                    );
-                  },
-                ),
-
-                // Estadísticas
-                MenuCard(
-                  titulo: "Estadísticas",
-                  icono: Icons.bar_chart,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/estadisticas',
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  // ==========================================================
-  // WIDGET PARA LAS ESTADÍSTICAS
-  // ==========================================================
+  
+  int _obtenerColumnas(double ancho) {
+    if (ancho >= 1000) {
+      return 4;
+    }
+
+    if (ancho >= 700) {
+      return 3;
+    }
+
+    return 2;
+  }
+  double _obtenerAspectRatio(double ancho) {
+    if (ancho >= 1000) {
+      return 1.35;
+    }
+
+    if (ancho >= 700) {
+      return 1.25;
+    }
+
+    return 1.05;
+  }
+
   Widget _estadisticaCard({
     required IconData icono,
     required String titulo,
@@ -194,6 +245,7 @@ class DashboardScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 3,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
@@ -210,26 +262,30 @@ class DashboardScreen extends StatelessWidget {
                 color: AppColors.primary,
               ),
             ),
-
             const SizedBox(height: 12),
-
-            Text(
-              cantidad,
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                cantidad,
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
             ),
-
-            const SizedBox(height: 3),
-
-            Text(
-              titulo,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.text,
+            const SizedBox(height: 4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                titulo,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.text,
+                ),
               ),
             ),
           ],

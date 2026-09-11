@@ -2,14 +2,16 @@
 //import 'package:flutter/material.dart';
 
 class Categorias {
-  final int idCategoria;
+  final int id;
   final String nombre;
   final String descripcion;
   final String icono;
   final bool activo;
+  final String icono;
+  final bool activo;
 
-  Categorias({
-    required this.idCategoria,
+  const Categorias({
+    required this.id,
     required this.nombre,
     required this.descripcion,
     required this.icono,
@@ -18,11 +20,17 @@ class Categorias {
 
   factory Categorias.fromJson(Map<String, dynamic> json) {
     return Categorias(
-      idCategoria: json['idCategoria'], 
-      nombre: json['nombre'],
-      descripcion: json['descripcion'] ?? "",
-      icono: json['icono'] ?? "",
-      activo: json['activo'] ?? true,
+      id: _toInt(json['id'] ?? json['idCategoria']),
+      nombre: '${json['nombre'] ?? ''}',
+      descripcion: '${json['descripcion'] ?? ''}',
+      icono: '${json['icono'] ?? ''}',
+      activo: json['activo'] is bool ? json['activo'] as bool : true,
     );
   }
+
+  int get idCategoria => id;
+}
+
+int _toInt(dynamic value) {
+  return value is num ? value.toInt() : int.tryParse('$value') ?? 0;
 }

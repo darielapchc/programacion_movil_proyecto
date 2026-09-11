@@ -32,9 +32,10 @@ class DetalleProductoScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Imagen del producto
-            Container(
-              width: double.infinity,
-              height: 220,
+            AspectRatio(
+              aspectRatio: 1.65,
+              child: Container(
+                width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -59,6 +60,7 @@ class DetalleProductoScreen extends StatelessWidget {
                       size: 90,
                       color: AppColors.primary,
                     ),
+              ),
             ),
 
             const SizedBox(height: 25),
@@ -86,7 +88,7 @@ class DetalleProductoScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                producto.categoria,
+                producto.categoriaNombre,
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
@@ -118,7 +120,7 @@ class DetalleProductoScreen extends StatelessWidget {
                     _datoProducto(
                       icono: Icons.category_outlined,
                       titulo: 'Categoría',
-                      valor: producto.categoria,
+                      valor: producto.categoriaNombre,
                     ),
 
                     const Divider(),

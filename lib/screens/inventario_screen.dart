@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../core/api_client.dart';
 import '../models/producto.dart';
+import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/producto_card.dart';
 
@@ -14,11 +17,15 @@ class _InventarioScreenState extends State<InventarioScreen> {
   final TextEditingController buscadorController =
       TextEditingController();
 
-  // Controla si se muestra la lista o la cuadrícula.
   bool mostrarGrid = false;
+  bool _cargando = true;
+  String? _error;
+  final ProductoService _productoService = ProductoService();
 
-  // Productos ficticios del inventario.
   final List<Map<String, dynamic>> productos = [
+    /* Datos cargados desde la API en initState. */
+  ];
+  /*
     {
       'id': 1,
       'nombre': 'Cuaderno Amigo',
@@ -109,39 +116,68 @@ class _InventarioScreenState extends State<InventarioScreen> {
       'cantidad': 80,
       'imagen': '',
     },
-  ];
+  ];*/
 
   List<Map<String, dynamic>> productosFiltrados = [];
 
-  // Guarda los códigos de los productos favoritos.
+  // Productos marcados como favoritos.
   final Set<String> productosFavoritos = {};
 
   @override
   void initState() {
     super.initState();
-
-    productosFiltrados = List.from(productos);
-
     buscadorController.addListener(_buscarProducto);
+    _cargarProductos();
   }
 
-  // Convierte el mapa a un objeto Producto.
+  Future<void> _cargarProductos() async {
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+
+    try {
+      final data = await _productoService.listarProductos();
+      if (!mounted) return;
+
+      setState(() {
+        productos
+          ..clear()
+          ..addAll(data.map(_productoAmap));
+        productosFiltrados = List.from(productos);
+        _cargando = false;
+      });
+    } on ApiException catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = error.message;
+          _cargando = false;
+        });
+      }
+    }
+  }
+
+  Map<String, dynamic> _productoAmap(Producto producto) {
+    return {
+      'id': producto.id,
+      'nombre': producto.nombre,
+      'descripcion': producto.descripcion,
+      'categoriaId': producto.categoriaId,
+      'categoria': producto.categoriaNombre,
+      'codigo': producto.codigo,
+      'precio': producto.precio,
+      'cantidad': producto.stock,
+      'imagen': producto.imagen,
+    };
+  }
+
   Producto _convertirAProducto(Map<String, dynamic> producto) {
-    return Producto(
-      id: producto['id'] ?? 0,
-      nombre: producto['nombre'],
-      categoria: producto['categoria'],
-      codigo: producto['codigo'],
-      precio: producto['precio'],
-      cantidad: producto['cantidad'],
-      imagen: producto['imagen'] ?? '',
-    );
+    return Producto.fromJson(producto);
   }
 
-  // Navega al detalle mediante una ruta con nombre.
   void _verDetalleProducto(Map<String, dynamic> producto) {
-    final Producto productoModelo = _convertirAProducto(producto);
-
+    final Producto productoModelo =
+        _convertirAProducto(producto);
     Navigator.pushNamed(
       context,
       '/detalle',
@@ -149,10 +185,8 @@ class _InventarioScreenState extends State<InventarioScreen> {
     );
   }
 
-  // Busca por nombre, código o categoría.
   void _buscarProducto() {
     final texto = buscadorController.text.toLowerCase();
-
     setState(() {
       productosFiltrados = productos.where((producto) {
         final nombre =
@@ -171,7 +205,6 @@ class _InventarioScreenState extends State<InventarioScreen> {
     });
   }
 
-  // Alterna el estado de favorito.
   void _alternarFavorito(String codigo) {
     setState(() {
       if (productosFavoritos.contains(codigo)) {
@@ -182,7 +215,6 @@ class _InventarioScreenState extends State<InventarioScreen> {
     });
   }
 
-  // Muestra el diálogo para eliminar un producto.
   Future<void> _mostrarDialogoEliminar(
     BuildContext context,
     Map<String, dynamic> producto,
@@ -218,44 +250,33 @@ class _InventarioScreenState extends State<InventarioScreen> {
         );
       },
     );
-
     if (confirmar == true) {
       _eliminarProducto(producto);
     }
   }
 
-  // Elimina un producto.
-  void _eliminarProducto(Map<String, dynamic> producto) {
+  Future<void> _eliminarProducto(Map<String, dynamic> producto) async {
     final String codigo = producto['codigo'];
+    try {
+      await _productoService.eliminarProducto(producto['id'] as int);
+      if (!mounted) return;
+      setState(() {
+        productos.removeWhere((item) => item['codigo'] == codigo);
+        productosFavoritos.remove(codigo);
 
-    setState(() {
-      productos.removeWhere(
-        (item) => item['codigo'] == codigo,
-      );
-
-      productosFavoritos.remove(codigo);
-
-      productosFiltrados = productos.where((item) {
-        final texto =
-            buscadorController.text.toLowerCase();
-
-        final nombre =
-            item['nombre'].toString().toLowerCase();
-
-        final codigoProducto =
-            item['codigo'].toString().toLowerCase();
-
-        final categoria =
-            item['categoria'].toString().toLowerCase();
-
-        return nombre.contains(texto) ||
-            codigoProducto.contains(texto) ||
-            categoria.contains(texto);
-      }).toList();
-    });
+        final texto = buscadorController.text.toLowerCase();
+        productosFiltrados = productos.where((item) {
+          return item['nombre'].toString().toLowerCase().contains(texto) ||
+              item['codigo'].toString().toLowerCase().contains(texto) ||
+              item['categoria'].toString().toLowerCase().contains(texto);
+        }).toList();
+      });
+      _mostrarSnackBar(mensaje: '${producto['nombre']} eliminado correctamente.');
+    } on ApiException catch (error) {
+      if (mounted) _mostrarSnackBar(mensaje: error.message);
+    }
   }
 
-  // SnackBar para mostrar mensajes.
   void _mostrarSnackBar({
     required String mensaje,
     String? accionTexto,
@@ -271,36 +292,34 @@ class _InventarioScreenState extends State<InventarioScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
-        action: accionTexto != null && onAccion != null
-            ? SnackBarAction(
-                label: accionTexto,
-                textColor: Colors.white,
-                onPressed: onAccion,
-              )
-            : null,
+        action:
+            accionTexto != null && onAccion != null
+                ? SnackBarAction(
+                    label: accionTexto,
+                    textColor: Colors.white,
+                    onPressed: onAccion,
+                  )
+                : null,
       ),
     );
   }
 
-  // Construye la lista de productos.
   Widget _construirLista() {
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 20),
       itemCount: productosFiltrados.length,
       itemBuilder: (context, index) {
         final producto = productosFiltrados[index];
-
         final String codigo = producto['codigo'];
         final bool esFavorito =
             productosFavoritos.contains(codigo);
-
         return Dismissible(
           key: ValueKey(codigo),
-
-          // Deslizar hacia la derecha.
+          // Swipe hacia la derecha.
           background: Container(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
               color: Colors.green,
               borderRadius: BorderRadius.circular(18),
@@ -323,18 +342,18 @@ class _InventarioScreenState extends State<InventarioScreen> {
               ],
             ),
           ),
-
-          // Deslizar hacia la izquierda.
           secondaryBackground: Container(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
               color: Colors.red,
               borderRadius: BorderRadius.circular(18),
             ),
             alignment: Alignment.centerRight,
             child: const Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment:
+                  MainAxisAlignment.end,
               children: [
                 Text(
                   'Eliminar',
@@ -351,9 +370,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
               ],
             ),
           ),
-
           confirmDismiss: (direction) async {
-            if (direction == DismissDirection.startToEnd) {
+            if (direction ==
+                DismissDirection.startToEnd) {
               _mostrarSnackBar(
                 mensaje: 'Producto seleccionado.',
                 accionTexto: 'VER',
@@ -361,20 +380,11 @@ class _InventarioScreenState extends State<InventarioScreen> {
                   _verDetalleProducto(producto);
                 },
               );
-
               return false;
             }
-
-            _eliminarProducto(producto);
-
-            _mostrarSnackBar(
-              mensaje:
-                  '${producto['nombre']} eliminado correctamente.',
-            );
-
+            await _eliminarProducto(producto);
             return false;
           },
-
           child: GestureDetector(
             onLongPress: () {
               _mostrarDialogoEliminar(
@@ -404,129 +414,148 @@ class _InventarioScreenState extends State<InventarioScreen> {
     );
   }
 
-  // Construye la cuadrícula de productos.
   Widget _construirGrid() {
-    final double ancho = MediaQuery.of(context).size.width;
-
-    // Responsive:
-    // teléfono = 2 columnas
-    // pantalla grande = 3 columnas
-    final int columnas = ancho > 600 ? 3 : 2;
-
-    return GridView.builder(
-      padding: const EdgeInsets.only(bottom: 20),
-      itemCount: productosFiltrados.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columnas,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.72,
-      ),
-      itemBuilder: (context, index) {
-        final producto = productosFiltrados[index];
-
-        final String codigo = producto['codigo'];
-        final bool esFavorito =
-            productosFavoritos.contains(codigo);
-
-        return GestureDetector(
-          onTap: () {
-            _verDetalleProducto(producto);
-          },
-          onLongPress: () {
-            _mostrarDialogoEliminar(
-              context,
-              producto,
-            );
-          },
-          child: Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Imagen/representación visual del producto.
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(
-                        Icons.inventory_2_outlined,
-                        size: 55,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  Text(
-                    producto['nombre'],
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    producto['categoria'],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    'L. ${producto['precio'].toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GridView.builder(
+          padding: const EdgeInsets.only(bottom: 20),
+          itemCount: productosFiltrados.length,
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            // Flutter calcula automáticamente cuántas
+            // tarjetas caben según el espacio disponible.
+            maxCrossAxisExtent: constraints.maxWidth < 600
+                ? constraints.maxWidth * .92
+                : 280,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.82,
+          ),
+          itemBuilder: (context, index) {
+            final producto =
+                productosFiltrados[index];
+            final String codigo =
+                producto['codigo'];
+            final bool esFavorito =
+                productosFavoritos.contains(codigo);
+            return GestureDetector(
+              onTap: () {
+                _verDetalleProducto(producto);
+              },
+              onLongPress: () {
+                _mostrarDialogoEliminar(
+                  context,
+                  producto,
+                );
+              },
+              child: Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(18),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
+                      // Imagen / representación del producto.
                       Expanded(
-                        child: Text(
-                          'Stock: ${producto['cantidad']}',
-                          style: const TextStyle(
-                            fontSize: 12,
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color:
+                                AppColors.background,
+                            borderRadius:
+                                BorderRadius.circular(
+                              14,
+                            ),
+                          ),
+                          child: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Icon(
+                              Icons
+                                  .inventory_2_outlined,
+                              size: 55,
+                              color:
+                                  AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
-                      Icon(
-                        esFavorito
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        size: 20,
-                        color: esFavorito
-                            ? Colors.red
-                            : Colors.grey,
+                      const SizedBox(height: 10),
+                      // Nombre.
+                      Text(
+                        producto['nombre'],
+                        maxLines: 2,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight:
+                              FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Categoría.
+                      Text(
+                        producto['categoria'],
+                        maxLines: 1,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Precio.
+                      Text(
+                        'L. ${producto['precio'].toStringAsFixed(2)}',
+                        maxLines: 1,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight:
+                              FontWeight.bold,
+                          color:
+                              AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Stock + favorito.
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Stock: ${producto['cantidad']}',
+                              overflow:
+                                  TextOverflow.ellipsis,
+                              style:
+                                  const TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            esFavorito
+                                ? Icons.favorite
+                                : Icons
+                                    .favorite_border,
+                            size: 20,
+                            color: esFavorito
+                                ? Colors.red
+                                : Colors.grey,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -534,199 +563,200 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   Widget _sinResultados() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 60,
-            color: Colors.grey.shade400,
-          ),
-
-          const SizedBox(height: 15),
-
-          const Text(
-            'No se encontraron productos',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: AppColors.text,
-            ),
-          ),
-
-          const SizedBox(height: 5),
-
-          const Text(
-            'Intenta buscar por nombre, código o categoría.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF5F5F5F),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    buscadorController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-
-      appBar: AppBar(
-        title: const Text(
-          'Inventario',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-
-      body: Padding(
+      child: Padding(
         padding: const EdgeInsets.all(20),
-
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
+            Icon(
+              Icons.search_off,
+              size: 60,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 15),
             const Text(
-              'Productos disponibles',
+              'No se encontraron productos',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
                 color: AppColors.text,
               ),
             ),
-
-            const SizedBox(height: 6),
-
+            const SizedBox(height: 5),
             const Text(
-              'Consulta y busca los productos registrados.',
+              'Intenta buscar por nombre, código o categoría.',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
                 color: Color(0xFF5F5F5F),
               ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // BUSCADOR
-            TextField(
-              controller: buscadorController,
-              decoration: InputDecoration(
-                hintText: 'Buscar producto...',
-
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: AppColors.primary,
-                ),
-
-                suffixIcon:
-                    buscadorController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              buscadorController.clear();
-                            },
-                          )
-                        : null,
-
-                filled: true,
-                fillColor: Colors.white,
-
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${productosFiltrados.length} productos encontrados',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF5F5F5F),
-                  ),
-                ),
-
-                // Selector de vista.
-                Row(
-                  children: [
-                    IconButton(
-                      tooltip: 'Vista de lista',
-                      onPressed: () {
-                        setState(() {
-                          mostrarGrid = false;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.view_list,
-                        color: !mostrarGrid
-                            ? AppColors.primary
-                            : Colors.grey,
-                      ),
-                    ),
-
-                    IconButton(
-                      tooltip: 'Vista de cuadrícula',
-                      onPressed: () {
-                        setState(() {
-                          mostrarGrid = true;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.grid_view,
-                        color: mostrarGrid
-                            ? AppColors.primary
-                            : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 5),
-
-            // Column + Expanded + contenido scrolleable.
-            Expanded(
-              child: productosFiltrados.isEmpty
-                  ? _sinResultados()
-                  : mostrarGrid
-                      ? _construirGrid()
-                      : _construirLista(),
             ),
           ],
         ),
       ),
     );
   }
+  
+@override
+Widget build(BuildContext context) {
+  final orientation = MediaQuery.of(context).orientation;
+  final bool esHorizontal = orientation == Orientation.landscape;
+  return Container(
+    color: AppColors.background,
+    child: SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool pantallaAncha = constraints.maxWidth >= 600;
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: pantallaAncha ? 24 : 16,
+              vertical: esHorizontal ? 8 : 16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!esHorizontal) ...[
+                  Text(
+                    'Productos disponibles',
+                    style: TextStyle(
+                      fontSize: pantallaAncha ? 24 : 21,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Consulta y busca los productos registrados.',
+                    style: TextStyle(
+                      fontSize: pantallaAncha ? 15 : 14,
+                      color: const Color(0xFF5F5F5F),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _construirBuscador(),
+                ] else
+                  Row(
+                    children: [
+                      Text(
+                        'Productos',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(child: _construirBuscador()),
+                    ],
+                  ),
+                SizedBox(height: esHorizontal ? 6 : 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        '${productosFiltrados.length} productos encontrados',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF5F5F5F),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Vista de lista',
+                          onPressed: () => setState(() => mostrarGrid = false),
+                          icon: Icon(
+                            Icons.view_list,
+                            color: !mostrarGrid
+                                ? AppColors.primary
+                                : Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Vista de cuadrícula',
+                          onPressed: () => setState(() => mostrarGrid = true),
+                          icon: Icon(
+                            Icons.grid_view,
+                            color: mostrarGrid
+                                ? AppColors.primary
+                                : Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: esHorizontal ? 6 : 8),
+                Expanded(
+                  child: _cargando
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_error!, textAlign: TextAlign.center), const SizedBox(height: 12), OutlinedButton(onPressed: _cargarProductos, child: const Text('Reintentar'))]))
+                          : productosFiltrados.isEmpty
+                      ? _sinResultados()
+                      : mostrarGrid
+                          ? _construirGrid()
+                          : _construirLista(),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    ),
+  );
 }
+
+// Método auxiliar extraído para reutilizar el buscador sin duplicar código
+Widget _construirBuscador() {
+  return TextField(
+    controller: buscadorController,
+    decoration: InputDecoration(
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      hintText: 'Buscar producto...',
+      prefixIcon: const Icon(
+        Icons.search,
+        color: AppColors.primary,
+      ),
+      suffixIcon: buscadorController.text.isNotEmpty
+          ? IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () => buscadorController.clear(),
+            )
+          : null,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(
+          color: AppColors.primary,
+          width: 2,
+        ),
+      ),
+    ),
+  );
+}
+  @override
+  void dispose() {
+    buscadorController.dispose();
+    super.dispose();
+  }
+}
+

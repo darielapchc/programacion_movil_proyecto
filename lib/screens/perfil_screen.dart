@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+
+import '../services/auth_service.dart';
 import '../utils/app_colors.dart';
 
 class PerfilScreen extends StatelessWidget {
@@ -76,12 +78,6 @@ class PerfilScreen extends StatelessWidget {
               icono: Icons.person,
               titulo: 'Nombre',
               valor: 'Isis',
-            ),
-
-            _informacionCard(
-              icono: Icons.email_outlined,
-              titulo: 'Correo electrónico',
-              valor: 'usuario@lnestock.com',
             ),
 
             _informacionCard(
@@ -279,49 +275,36 @@ class PerfilScreen extends StatelessWidget {
   }
 
   // Diálogo para cerrar sesión
-  void _mostrarCerrarSesion(BuildContext context) {
+ void _mostrarCerrarSesion(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
-            'Cerrar sesión',
-          ),
-
-          content: const Text(
-            '¿Estás segura de que deseas cerrar sesión?',
-          ),
-
+          title: const Text('Cerrar sesión'),
+          content: const Text('¿Estás segura de que deseas cerrar sesión?'),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-
+              onPressed: () => Navigator.pop(context),
               child: const Text(
                 'Cancelar',
-                style: TextStyle(
-                  color: AppColors.primary,
-                ),
+                style: TextStyle(color: AppColors.primary),
               ),
             ),
-
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-
-                // Más adelante conectaremos esto
-                // con LoginScreen.
+                await AuthService().logout();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/bienvenida',
+                  (route) => false,
+                );
               },
-
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
-
-              child: const Text(
-                'Cerrar sesión',
-              ),
+              child: const Text('Cerrar sesión'),
             ),
           ],
         );
