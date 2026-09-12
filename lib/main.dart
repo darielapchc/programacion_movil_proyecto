@@ -8,10 +8,15 @@ import 'package:inventario_application_1/screens/home_screen.dart';
 import 'package:inventario_application_1/screens/inventario_screen.dart';
 import 'package:inventario_application_1/screens/login_screen.dart';
 import 'package:inventario_application_1/screens/perfil_screen.dart';
+import 'package:inventario_application_1/screens/registro_screen.dart';
 import 'screens/bienvenida_screen.dart';
 import 'utils/app_colors.dart';
+import 'services/notificacion_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize();
+
   runApp(const MyApp());
 }
 
@@ -36,6 +41,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(), 
         '/bienvenida': (context) => const BienvenidaScreen(),
         '/login': (context) => const LoginScreen(),
+        '/registro': (context) => const RegistroScreen(),
         '/home': (context) => const HomeScreen(),
         '/inventario': (context) => const InventarioScreen(),
         '/categorias': (context) => const CategoriasScreen(),

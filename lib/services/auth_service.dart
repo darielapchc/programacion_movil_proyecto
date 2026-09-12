@@ -13,6 +13,7 @@ class AuthService {
 
   AuthService({ApiClient? api}) : api = api ?? ApiClient.instance;
 
+  //Metodo Login
   Future<AuthResult> login(String email, String password) async {
     final response = await api.post(
       '/auth/login',
@@ -25,6 +26,20 @@ class AuthService {
     );
 
     await api.storage.saveToken(token);
+    return AuthResult(token, user);
+  }
+
+  //Metodo registro
+  Future<AuthResult> register({ required String fullName, required String email, required String password,}) async {
+    final response = await api.post(
+      '/auth/register',
+      data: {'fullName': fullName, 'email': email, 'password': password, 'role': 'staff'},
+    );
+
+    final payload = responsePayload(response.data) as Map<String, dynamic>;
+    final token = '${payload['accessToken'] ?? payload['token'] ?? ''}';
+    final user = Usuario.fromJson((payload['user'] as Map?)?.cast<String, dynamic>() ?? {},);
+
     return AuthResult(token, user);
   }
 
