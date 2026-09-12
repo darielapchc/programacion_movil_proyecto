@@ -41,9 +41,26 @@ class BienvenidaScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
+                            onPressed: () => Navigator.pushNamed(context, '/registro'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                            child: const Text('Crear usuario nuevo', style: TextStyle(fontSize: 18, color: Colors.white)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: OutlinedButton(
                             onPressed: () => Navigator.pushNamed(context, '/login'),
-                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
-                            child: const Text('Ingresar', style: TextStyle(fontSize: 18, color: Colors.white)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                            child: const Text('Iniciar sesión', style: TextStyle(fontSize: 18)),
                           ),
                         ),
                         SizedBox(height: compacto ? 18 : 30),
