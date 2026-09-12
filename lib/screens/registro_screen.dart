@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/api_client.dart';
+import '../services/auth_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/boton_principal.dart';
 
@@ -17,6 +19,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
   final _correoController = TextEditingController();
   final _contrasenaController = TextEditingController();
   final _confirmarContrasenaController = TextEditingController();
+  bool _cargando = false;
 
   @override
   void dispose() {
@@ -59,13 +62,69 @@ class _RegistroScreenState extends State<RegistroScreen> {
         : 'Las contraseñas no coinciden';
   }
 
-  void _crearCuenta() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  //Metodo crear cuenta
+  Future<void> _crearCuenta() async {
+  if (!(_formKey.currentState?.validate() ?? false)) {
+    return;
+  }
+  if (_cargando) return;
+  setState(() { _cargando = true;});
+
+  final fullName = '${_nombreController.text.trim()} ' '${_apellidoController.text.trim()}';
+
+  try {
+    await AuthService().register( fullName: fullName, email: _correoController.text.trim(), password: _contrasenaController.text );
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('¡Registro exitoso!'),
+          content: const Text(
+            'El usuario fue creado correctamente.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(
+                  context,
+                  '/login',
+                );
+              },
+              child: const Text('Iniciar sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  } on ApiException catch (error) {
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Los datos son válidos.')),
+      SnackBar( content: Text(error.message)),
     );
+  } catch (_) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Ocurrió un error al crear el usuario.',
+        ),
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        _cargando = false;
+      });
+    }
   }
+}
 
   InputDecoration _decoracion(String label, IconData icono) {
     return InputDecoration(
