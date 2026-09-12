@@ -275,30 +275,25 @@ class PerfilScreen extends StatelessWidget {
   }
 
   // Diálogo para cerrar sesión
- void _mostrarCerrarSesion(BuildContext context) {
+  void _mostrarCerrarSesion(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Cerrar sesión'),
           content: const Text('¿Estás segura de que deseas cerrar sesión?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(color: AppColors.primary),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar', style: TextStyle(color: AppColors.primary),
               ),
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
                 await AuthService().logout();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/bienvenida',
-                  (route) => false,
-                );
+                if (!context.mounted) return;
+                Navigator.pushNamedAndRemoveUntil( context, '/bienvenida', (route) => false );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
