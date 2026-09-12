@@ -11,8 +11,12 @@ import 'package:inventario_application_1/screens/perfil_screen.dart';
 import 'package:inventario_application_1/screens/registro_screen.dart';
 import 'screens/bienvenida_screen.dart';
 import 'utils/app_colors.dart';
+import 'services/notificacion_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize();
+
   runApp(const MyApp());
 }
 

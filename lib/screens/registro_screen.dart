@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../core/api_client.dart';
 import '../services/auth_service.dart';
+import '../services/notificacion_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/boton_principal.dart';
 
@@ -74,6 +74,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   try {
     await AuthService().register( fullName: fullName, email: _correoController.text.trim(), password: _contrasenaController.text );
+    await NotificationService.requestPermission();
+    await NotificationService.showRegistrationNotification(fullName: fullName);
 
     if (!mounted) return;
 
