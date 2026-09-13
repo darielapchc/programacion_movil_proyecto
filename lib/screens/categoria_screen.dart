@@ -6,6 +6,7 @@ import '../core/api_client.dart';
 import '../models/categorias.dart';
 import '../services/categoria_service.dart';
 import '../utils/app_colors.dart';
+import 'productos_categoria_screen.dart';
 
 class CategoriasScreen extends StatefulWidget {
   const CategoriasScreen({super.key});
@@ -185,8 +186,13 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
               color: AppColors.primary,
             ),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Seleccionaste ${categoria.nombre}')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProductosCategoriaScreen(
+                    categoria: categoria,
+                  ),
+                ),
               );
             },
           ),

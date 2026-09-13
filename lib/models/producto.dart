@@ -25,6 +25,10 @@ class Producto {
 
   factory Producto.fromJson(Map<String, dynamic> json) {
     final rawCategory = json['categoria'];
+    final category = rawCategory is Map
+        ? Categorias.fromJson(rawCategory.cast<String, dynamic>())
+        : null;
+    final rawCategoryId = json['categoriaId'] ?? json['idCategoria'];
 
     return Producto(
       id: _toInt(json['id']),
@@ -34,12 +38,8 @@ class Producto {
       precio: _toDouble(json['precio']),
       stock: _toInt(json['stock'] ?? json['cantidad']),
       imagen: '${json['imagen'] ?? ''}',
-      categoriaId: json['categoriaId'] == null && json['idCategoria'] == null
-          ? null
-          : _toInt(json['categoriaId'] ?? json['idCategoria']),
-      categoria: rawCategory is Map
-          ? Categorias.fromJson(rawCategory.cast<String, dynamic>())
-          : null,
+      categoriaId: rawCategoryId == null ? category?.id : _toInt(rawCategoryId),
+      categoria: category,
     );
   }
 
