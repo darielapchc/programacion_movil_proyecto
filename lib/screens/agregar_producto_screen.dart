@@ -175,11 +175,6 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F0),
-      appBar: AppBar(
-        title: const Text("Agregar Producto"),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),

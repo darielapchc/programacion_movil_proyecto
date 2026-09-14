@@ -75,15 +75,6 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(
-          'Categorías',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
