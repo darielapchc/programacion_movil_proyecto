@@ -15,7 +15,9 @@ import '../widgets/boton_principal.dart';
 import '../widgets/campo_texto.dart';
 
 class AgregarProductoScreen extends StatefulWidget {
-  const AgregarProductoScreen({super.key});
+  final Producto? producto;
+
+  const AgregarProductoScreen({super.key, this.producto});
 
   @override
   State<AgregarProductoScreen> createState() => _AgregarProductoScreenState();
@@ -25,6 +27,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final nombreController = TextEditingController();
+  final descripcionController = TextEditingController();
   final codigoController = TextEditingController();
   final precioController = TextEditingController();
   final cantidadController = TextEditingController();
@@ -40,6 +43,8 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   File? _imagenSeleccionada; 
   final ImagePicker _picker = ImagePicker(); // Instancia del selector
 
+  bool get _modoEdicion => widget.producto != null;
+
   final List<String> categorias = [
     "Cuadernos",
     "Papelería",
@@ -52,7 +57,19 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   @override
   void initState() {
     super.initState();
+    _precargarProducto();
     _cargarCategorias();
+  }
+
+  void _precargarProducto() {
+    final producto = widget.producto;
+    if (producto == null) return;
+
+    nombreController.text = producto.nombre;
+    descripcionController.text = producto.descripcion;
+    codigoController.text = producto.codigo;
+    precioController.text = producto.precio.toString();
+    categoriaSeleccionada = producto.categoriaId?.toString();
   }
 
   Future<void> _cargarCategorias() async {
@@ -77,6 +94,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
   @override
   void dispose() {
     nombreController.dispose();
+    descripcionController.dispose();
     codigoController.dispose();
     precioController.dispose();
     cantidadController.dispose();
@@ -124,7 +142,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
     );
   }
 
-  Future<void> guardarProducto() async {
+  Future<void> _guardarProductoCrear() async {
     if (_formKey.currentState!.validate() && categoriaSeleccionada != null && !_guardando) {
       if (categoriaSeleccionada == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -147,6 +165,7 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
           Producto(
             id: 0,
             nombre: nombreController.text.trim(),
+            descripcion: descripcionController.text.trim(),
             codigo: codigoController.text.trim(),
             precio: double.tryParse(precioController.text.trim()) ?? 0,
             stock: int.tryParse(cantidadController.text.trim()) ?? 0,
@@ -171,10 +190,54 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
     }
   }
 
+  Future<void> _guardarProducto() async {
+    if (!_formKey.currentState!.validate() ||
+        categoriaSeleccionada == null ||
+        _guardando) {
+      return;
+    }
+
+    setState(() => _guardando = true);
+    try {
+      final datos = <String, dynamic>{
+        'nombre': nombreController.text.trim(),
+        'descripcion': descripcionController.text.trim(),
+        'codigo': codigoController.text.trim(),
+        'precio': double.parse(precioController.text.trim()),
+        'categoriaId': int.parse(categoriaSeleccionada!),
+        'imagen': _imagenSeleccionada?.path ?? widget.producto!.imagen,
+      };
+      final actualizado = await _productoService.actualizarProducto(
+        widget.producto!.id,
+        datos,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context, actualizado);
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F0),
+      appBar: AppBar(
+        title: Text(
+          _modoEdicion ? 'Editar producto' : 'Agregar producto',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -212,6 +275,12 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 const SizedBox(height: 25),
+                CampoTexto(
+                  label: 'DescripciÃ³n',
+                  icono: Icons.description_outlined,
+                  controlador: descripcionController,
+                ),
+                const SizedBox(height: 15),
                 // Resto de tus campos igual...
                 CampoTexto(
                   label: "Nombre",
@@ -246,6 +315,9 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Seleccione una categorÃ­a'
+                      : null,
                   items: categoriasApi.map((categoria) {
                     return DropdownMenuItem(
                       value: categoria.id.toString(),
@@ -267,27 +339,33 @@ class _AgregarProductoScreenState extends State<AgregarProductoScreen> {
                     if (value == null || value.isEmpty) {
                       return "Ingrese el precio";
                     }
+                    if (double.tryParse(value.trim()) == null) {
+                      return "Ingrese un precio vÃ¡lido";
+                    }
                     return null;
               },
                 ),
                 const SizedBox(height: 15),
-                CampoTexto(
-                  label: "Cantidad",
-                  icono: Icons.numbers,
-                  controlador: cantidadController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Ingrese la cantidad";
-                    }
-                    return null;
-                  },
-                ),
+                if (!_modoEdicion)
+                  CampoTexto(
+                    label: "Cantidad",
+                    icono: Icons.numbers,
+                    controlador: cantidadController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Ingrese la cantidad";
+                      }
+                      return null;
+                    },
+                  ),
                 const SizedBox(height: 30),
                 BotonPrincipal(
-                  texto: "Guardar Producto",
+                  texto: _modoEdicion ? "Actualizar Producto" : "Guardar Producto",
                   onPressed: _guardando || _cargandoCategorias
                       ? () {}
-                      : guardarProducto,
+                      : _modoEdicion
+                          ? _guardarProducto
+                          : _guardarProductoCrear,
                 ),
                 const SizedBox(height: 20),
               ],

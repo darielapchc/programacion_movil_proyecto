@@ -59,12 +59,21 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
     }
   }
 
-  void _verDetalleProducto(Producto producto) {
-    Navigator.pushNamed(
+  Future<void> _verDetalleProducto(Producto producto) async {
+    final actualizado = await Navigator.pushNamed(
       context,
       '/detalle',
       arguments: producto,
     );
+
+    if (!mounted || actualizado is! Producto) return;
+
+    setState(() {
+      final index = _productos.indexWhere((item) => item.id == actualizado.id);
+      if (index != -1 && actualizado.categoriaId == widget.categoria.id) {
+        _productos[index] = actualizado;
+      }
+    });
   }
 
   void _alternarFavorito(Producto producto) {

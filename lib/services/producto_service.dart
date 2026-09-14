@@ -21,8 +21,11 @@ class ProductoService {
     return Producto.fromJson(responsePayload(response.data));
   }
 
-  Future<Producto> actualizarProducto(int id, Producto producto) async {
-    final response = await api.put('/productos/$id', data: producto.toJson());
+  Future<Producto> actualizarProducto(
+    int id,
+    Map<String, dynamic> datos,
+  ) async {
+    final response = await api.put('/productos/$id', data: datos);
     return Producto.fromJson(responsePayload(response.data));
   }
 

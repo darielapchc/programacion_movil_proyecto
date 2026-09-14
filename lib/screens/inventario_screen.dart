@@ -175,14 +175,23 @@ class _InventarioScreenState extends State<InventarioScreen> {
     return Producto.fromJson(producto);
   }
 
-  void _verDetalleProducto(Map<String, dynamic> producto) {
+  Future<void> _verDetalleProducto(Map<String, dynamic> producto) async {
     final Producto productoModelo =
         _convertirAProducto(producto);
-    Navigator.pushNamed(
+    final actualizado = await Navigator.pushNamed(
       context,
       '/detalle',
       arguments: productoModelo,
     );
+
+    if (!mounted || actualizado is! Producto) return;
+
+    setState(() {
+      final index = productos.indexWhere((item) => item['id'] == actualizado.id);
+      if (index == -1) return;
+      productos[index] = _productoAmap(actualizado);
+    });
+    _buscarProducto();
   }
 
   void _buscarProducto() {

@@ -2,15 +2,39 @@ import 'package:flutter/material.dart';
 import '../models/producto.dart';
 import '../utils/app_colors.dart';
 
-class DetalleProductoScreen extends StatelessWidget {
+class DetalleProductoScreen extends StatefulWidget {
   const DetalleProductoScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Recibimos el producto enviado mediante Navigator.pushNamed.
-    final producto =
-        ModalRoute.of(context)!.settings.arguments as Producto;
+  State<DetalleProductoScreen> createState() => _DetalleProductoScreenState();
+}
 
+class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
+  late Producto producto;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    producto = ModalRoute.of(context)!.settings.arguments as Producto;
+  }
+
+  Future<void> _editarProducto() async {
+    final productoActualizado = await Navigator.pushNamed(
+      context,
+      '/agregar-producto',
+      arguments: producto,
+    );
+
+    if (!mounted || productoActualizado is! Producto) return;
+
+    setState(() => producto = productoActualizado);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Producto actualizado correctamente')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
 
@@ -115,6 +139,15 @@ class DetalleProductoScreen extends StatelessWidget {
                       valor: producto.codigo,
                     ),
 
+                    if (producto.descripcion.isNotEmpty) ...[
+                      const Divider(),
+                      _datoProducto(
+                        icono: Icons.description_outlined,
+                        titulo: 'Descripcion',
+                        valor: producto.descripcion,
+                      ),
+                    ],
+
                     const Divider(),
 
                     _datoProducto(
@@ -161,6 +194,26 @@ class DetalleProductoScreen extends StatelessWidget {
             _estadoInventario(producto.cantidad),
 
             const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: _editarProducto,
+                icon: const Icon(Icons.edit),
+                label: const Text(
+                  'Editar producto',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
 
             // Botón regresar
             SizedBox(
@@ -168,7 +221,7 @@ class DetalleProductoScreen extends StatelessWidget {
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context, producto);
                 },
                 icon: const Icon(Icons.arrow_back),
                 label: const Text(

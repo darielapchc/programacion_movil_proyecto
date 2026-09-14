@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventario_application_1/screens/splash_screen.dart'; 
 import 'package:inventario_application_1/screens/agregar_producto_screen.dart';
+import 'package:inventario_application_1/models/producto.dart';
 import 'package:inventario_application_1/screens/categoria_screen.dart';
 import 'package:inventario_application_1/screens/detalle_producto_screen.dart';
 import 'package:inventario_application_1/screens/estadisticas_screen.dart';
@@ -45,7 +46,9 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/inventario': (context) => const InventarioScreen(),
         '/categorias': (context) => const CategoriasScreen(),
-        '/agregar-producto': (context) => const AgregarProductoScreen(),
+        '/agregar-producto': (context) => AgregarProductoScreen(
+              producto: ModalRoute.of(context)?.settings.arguments as Producto?,
+            ),
         '/detalle': (context) => const DetalleProductoScreen(),
         '/perfil': (context) => const PerfilScreen(),
         '/estadisticas': (context) => const EstadisticasScreen(),

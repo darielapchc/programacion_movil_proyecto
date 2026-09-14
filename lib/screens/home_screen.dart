@@ -38,6 +38,11 @@ class _HomeScreenState extends State<HomeScreen> {
       (route) => false,
     );
   }
+
+  Future<void> _abrirFormularioNuevoProducto() async {
+    await Navigator.pushNamed(context, '/agregar-producto');
+  }
+
   void mostrarFormularioNuevoProducto() {
     final formKey = GlobalKey<FormState>();
     final nombreController = TextEditingController();
@@ -321,31 +326,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(context);
               },
             ),
-            ExpansionTile(
+            ListTile(
               leading: const Icon(Icons.category),
               title: const Text('Categorías'),
-              children: [
-                ListTile(
-                  contentPadding:
-                      const EdgeInsets.only(left: 70),
-                  leading: const Icon(Icons.school),
-                  title: const Text('Útiles escolares'),
-                  onTap: () {
-                    cambiarPagina(2);
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  contentPadding:
-                      const EdgeInsets.only(left: 70),
-                  leading: const Icon(Icons.edit),
-                  title: const Text('Papelería'),
-                  onTap: () {
-                    cambiarPagina(2);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+              selected: paginaActual == 2,
+              selectedColor: AppColors.primary,
+              onTap: () {
+                cambiarPagina(2);
+                Navigator.pop(context);
+              },
             ),
             ListTile(
               leading: const Icon(Icons.add_box),
@@ -429,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: mostrarFormularioNuevoProducto,
+        onPressed: _abrirFormularioNuevoProducto,
         icon: const Icon(Icons.add),
         label: const Text('Nuevo'),
         backgroundColor: AppColors.primary,
