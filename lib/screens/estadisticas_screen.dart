@@ -49,7 +49,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   int _movimientosDe(String tipo) {
     return _movimientos
         .where((movimiento) =>
-            movimiento.tipoMovimiento.toLowerCase() == tipo)
+            movimiento.tipoMovimiento.trim().toUpperCase() == tipo.toUpperCase())
         .fold(0, (total, movimiento) => total + movimiento.cantidad);
   }
   @override
@@ -324,7 +324,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
             ),
 
             Text(
-              '$cantidad movimientos',
+              '$cantidad unidades',
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF5F5F5F),

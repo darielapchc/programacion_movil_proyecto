@@ -5,6 +5,7 @@ import 'package:inventario_application_1/models/producto.dart';
 import 'package:inventario_application_1/screens/categoria_screen.dart';
 import 'package:inventario_application_1/screens/detalle_producto_screen.dart';
 import 'package:inventario_application_1/screens/estadisticas_screen.dart';
+import 'package:inventario_application_1/screens/movimientos_screen.dart';
 import 'package:inventario_application_1/screens/home_screen.dart';
 import 'package:inventario_application_1/screens/inventario_screen.dart';
 import 'package:inventario_application_1/screens/login_screen.dart';
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
         '/detalle': (context) => const DetalleProductoScreen(),
         '/perfil': (context) => const PerfilScreen(),
         '/estadisticas': (context) => const EstadisticasScreen(),
+        '/movimientos': (context) => const MovimientosScreen(),
       },
     );
   }

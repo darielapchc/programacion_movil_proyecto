@@ -358,6 +358,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.swap_vert),
+              title: const Text('Movimientos'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/movimientos');
+              },
+            ),
             const Divider(),
             ListTile(
               leading: const Icon(

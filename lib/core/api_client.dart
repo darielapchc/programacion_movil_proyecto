@@ -85,12 +85,16 @@ class ApiClient {
     }
 
     switch (error.response?.statusCode) {
+      case 400:
+        return 'La solicitud no es válida.';
       case 401:
         return 'Sesión expirada o no autorizada.';
       case 403:
         return 'No tienes permisos para realizar esta acción.';
       case 404:
         return 'Recurso no encontrado.';
+      case 409:
+        return 'La operación no se puede completar porque el inventario cambió.';
       case 500:
         return 'Ocurrió un error en el servidor.';
       default:

@@ -204,6 +204,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       },
                     ),
+
+                    // MOVIMIENTOS
+                    MenuCard(
+                      titulo: 'Movimientos',
+                      icono: Icons.swap_vert,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/movimientos');
+                      },
+                    ),
                   ],
                 ),
               ],
