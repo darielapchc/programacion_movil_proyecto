@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-
 import '../core/api_client.dart';
 import '../models/producto.dart';
 import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/producto_card.dart';
+import '../utils/product_icon_mapper.dart';
 
 class InventarioScreen extends StatefulWidget {
   const InventarioScreen({super.key});
@@ -25,99 +25,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
   final List<Map<String, dynamic>> productos = [
     /* Datos cargados desde la API en initState. */
   ];
-  /*
-    {
-      'id': 1,
-      'nombre': 'Cuaderno Amigo',
-      'categoria': 'Cuadernos',
-      'codigo': 'CU001',
-      'precio': 35.00,
-      'cantidad': 30,
-      'imagen': '',
-    },
-    {
-      'id': 2,
-      'nombre': 'Lápiz BIC',
-      'categoria': 'Lápices',
-      'codigo': 'LA001',
-      'precio': 6.00,
-      'cantidad': 20,
-      'imagen': '',
-    },
-    {
-      'id': 3,
-      'nombre': 'Marcadores Sharpie',
-      'categoria': 'Arte',
-      'codigo': 'MA001',
-      'precio': 22.00,
-      'cantidad': 35,
-      'imagen': '',
-    },
-    {
-      'id': 4,
-      'nombre': 'Resma de papel',
-      'categoria': 'Papelería',
-      'codigo': 'PA001',
-      'precio': 135.00,
-      'cantidad': 40,
-      'imagen': '',
-    },
-    {
-      'id': 5,
-      'nombre': 'Colores Maped',
-      'categoria': 'Escolar',
-      'codigo': 'CO001',
-      'precio': 65.00,
-      'cantidad': 120,
-      'imagen': '',
-    },
-    {
-      'id': 6,
-      'nombre': 'Block Liso',
-      'categoria': 'Cuadernos',
-      'codigo': 'BL001',
-      'precio': 22.00,
-      'cantidad': 24,
-      'imagen': '',
-    },
-    {
-      'id': 7,
-      'nombre': 'Block Rayado',
-      'categoria': 'Escolar',
-      'codigo': 'BR001',
-      'precio': 25.00,
-      'cantidad': 24,
-      'imagen': '',
-    },
-    {
-      'id': 8,
-      'nombre': 'Marcadores BIC',
-      'categoria': 'Arte',
-      'codigo': 'MB001',
-      'precio': 30.00,
-      'cantidad': 24,
-      'imagen': '',
-    },
-    {
-      'id': 9,
-      'nombre': 'Cuaderno de Dibujo',
-      'categoria': 'Escolar',
-      'codigo': 'CD001',
-      'precio': 10.00,
-      'cantidad': 100,
-      'imagen': '',
-    },
-    {
-      'id': 10,
-      'nombre': 'Cuaderno de Caligrafía',
-      'categoria': 'Escolar',
-      'codigo': 'CC001',
-      'precio': 10.00,
-      'cantidad': 80,
-      'imagen': '',
-    },
-  ];*/
-
+  
   List<Map<String, dynamic>> productosFiltrados = [];
 
   // Productos marcados como favoritos.
@@ -405,6 +313,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
               nombre: producto['nombre'],
               codigo: producto['codigo'],
               categoria: producto['categoria'],
+              icono: producto['imagen'] ?? '',
               precio: producto['precio'],
               cantidad: producto['cantidad'],
               esFavorito: esFavorito,
@@ -481,16 +390,17 @@ class _InventarioScreenState extends State<InventarioScreen> {
                               14,
                             ),
                           ),
-                          child: const FittedBox(
+                          child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Icon(
-                              Icons
-                                  .inventory_2_outlined,
+                              ProductIconMapper.getIcon(
+                                producto['imagen']?.toString(),
+                              ),
                               size: 55,
-                              color:
-                                  AppColors.primary,
+                              color: AppColors.primary,
                             ),
                           ),
+
                         ),
                       ),
                       const SizedBox(height: 10),
