@@ -581,7 +581,7 @@ class _AgregarProductoScreenState
                 // =========================
 
                 DropdownButtonFormField<String>(
-                  value:
+                  initialValue:
                       categoriaSeleccionada,
 
                   decoration:

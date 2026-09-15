@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
@@ -160,7 +162,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _movimientos.length + 1,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         if (index == 0) return _accionesMovimiento();
         final movimiento = _movimientos[index - 1];
@@ -360,7 +362,7 @@ class _FormularioMovimientoState extends State<_FormularioMovimiento> {
                 ),
                 const SizedBox(height: 18),
                 DropdownButtonFormField<int>(
-                  value: _productoId,
+                  initialValue: _productoId,
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Producto',
