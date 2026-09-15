@@ -172,6 +172,7 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
           categoria: producto.categoriaNombre.isEmpty
               ? widget.categoria.nombre
               : producto.categoriaNombre,
+          icono: producto.imagen,
           precio: producto.precio,
           esFavorito: _productosFavoritos.contains(producto.codigo),
           onTap: () => _verDetalleProducto(producto),
