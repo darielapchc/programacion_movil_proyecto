@@ -42,7 +42,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (index < 0 || index > 3 || (index == 3 && !_esAdmin)) return;
 
     setState(() {
-      _pantallas[index] ??= _crearPantalla(index);
+      if (index == 1 || index == 2) {
+        _pantallas[index] = _crearPantalla(index);
+      } else {
+        _pantallas[index] ??= _crearPantalla(index);
+      }
       paginaActual = index;
     });
   }
@@ -52,9 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return DashboardScreen(onNavigate: cambiarPagina);
       case 1:
-        return const InventarioScreen();
+        return InventarioScreen(key: UniqueKey());
       case 2:
-        return const CategoriasScreen();
+        return CategoriasScreen(key: UniqueKey());
       case 3:
         return const AgregarProductoScreen();
       default:

@@ -58,6 +58,7 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
         _productosFavoritos
           ..clear()
           ..addAll(favoritos);
+        _ordenarPorFavoritos();
         _cargando = false;
       });
     } on ApiException catch (error) {
@@ -95,6 +96,7 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
       } else {
         _productosFavoritos.add(producto.id);
       }
+      _ordenarPorFavoritos();
     });
 
     try {
@@ -111,9 +113,23 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
         } else {
           _productosFavoritos.remove(producto.id);
         }
+        _ordenarPorFavoritos();
       });
       _mostrarError(error.message);
     }
+  }
+
+  void _ordenarPorFavoritos() {
+    _productos.sort((a, b) {
+      final favoritoA = _productosFavoritos.contains(a.id);
+      final favoritoB = _productosFavoritos.contains(b.id);
+
+      if (favoritoA != favoritoB) {
+        return favoritoA ? -1 : 1;
+      }
+
+      return a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase());
+    });
   }
 
   void _mostrarError(String mensaje) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'core/api_client.dart';
 import 'package:inventario_application_1/screens/splash_screen.dart'; 
 import 'package:inventario_application_1/screens/agregar_producto_screen.dart';
 import 'package:inventario_application_1/models/producto.dart';
@@ -18,6 +19,7 @@ import 'services/notificacion_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.initialize();
+  await ApiClient.instance.initialize();
 
   runApp(const MyApp());
 }
@@ -58,3 +60,10 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+//---- CREDENCIALES PARA INICIAR SESIÓN ---- //
+/* 
+  - fullName: 'Lia Jael', email: 'liajael@gmail.com', role: 'staff'
+  - fullName: 'Administración LNE Stock', email: 'admin@lnestock.hn', role: 'admin' 
+  
+*/

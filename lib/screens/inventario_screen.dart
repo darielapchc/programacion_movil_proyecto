@@ -63,10 +63,10 @@ class _InventarioScreenState extends State<InventarioScreen> {
         productos
           ..clear()
           ..addAll(data.map(_productoAmap));
-        productosFiltrados = List.from(productos);
         productosFavoritos
           ..clear()
           ..addAll(favoritos);
+        productosFiltrados = _filtrarYOrdenar();
         _cargando = false;
       });
     } on ApiException catch (error) {
@@ -117,23 +117,39 @@ class _InventarioScreenState extends State<InventarioScreen> {
   }
 
   void _buscarProducto() {
-    final texto = buscadorController.text.toLowerCase();
     setState(() {
-      productosFiltrados = productos.where((producto) {
-        final nombre =
-            producto['nombre'].toString().toLowerCase();
-
-        final codigo =
-            producto['codigo'].toString().toLowerCase();
-
-        final categoria =
-            producto['categoria'].toString().toLowerCase();
-
-        return nombre.contains(texto) ||
-            codigo.contains(texto) ||
-            categoria.contains(texto);
-      }).toList();
+      productosFiltrados = _filtrarYOrdenar();
     });
+  }
+
+  List<Map<String, dynamic>> _filtrarYOrdenar() {
+    final texto = buscadorController.text.toLowerCase();
+
+    final filtrados = productos.where((producto) {
+      final nombre = producto['nombre'].toString().toLowerCase();
+      final codigo = producto['codigo'].toString().toLowerCase();
+      final categoria = producto['categoria'].toString().toLowerCase();
+
+      return nombre.contains(texto) ||
+          codigo.contains(texto) ||
+          categoria.contains(texto);
+    }).toList();
+
+    filtrados.sort((a, b) {
+      final favoritoA = productosFavoritos.contains(a['id']);
+      final favoritoB = productosFavoritos.contains(b['id']);
+
+      if (favoritoA != favoritoB) {
+        return favoritoA ? -1 : 1;
+      }
+
+      return a['nombre']
+          .toString()
+          .toLowerCase()
+          .compareTo(b['nombre'].toString().toLowerCase());
+    });
+
+    return filtrados;
   }
 
   Future<void> _alternarFavorito(int productoId) async {
@@ -144,6 +160,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
       } else {
         productosFavoritos.add(productoId);
       }
+      productosFiltrados = _filtrarYOrdenar();
     });
 
     try {
@@ -160,6 +177,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
         } else {
           productosFavoritos.remove(productoId);
         }
+        productosFiltrados = _filtrarYOrdenar();
       });
       _mostrarSnackBar(mensaje: error.message);
     }
