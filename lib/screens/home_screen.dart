@@ -8,10 +8,8 @@ import 'categoria_screen.dart';
 import 'agregar_producto_screen.dart';
 
 import '../services/auth_service.dart';
+import '../core/api_client.dart';
 import '../utils/app_colors.dart';
-import '../utils/snackbar_helper.dart';
-import '../widgets/campo_texto.dart';
-import '../widgets/boton_principal.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,12 +20,50 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int paginaActual = 0;
+  bool _esAdmin = false;
+  final List<Widget?> _pantallas = [
+    null,
+    null,
+    null,
+    null,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarRol();
+  }
+
+  Future<void> _cargarRol() async {
+    final role = await ApiClient.instance.storage.getRole();
+    if (mounted) setState(() => _esAdmin = role?.toLowerCase() == 'admin');
+  }
   void cambiarPagina(int index) {
-    if (index < 0 || index > 3) return;
+    if (index < 0 || index > 3 || (index == 3 && !_esAdmin)) return;
 
     setState(() {
+      if (index == 1 || index == 2) {
+        _pantallas[index] = _crearPantalla(index);
+      } else {
+        _pantallas[index] ??= _crearPantalla(index);
+      }
       paginaActual = index;
     });
+  }
+
+  Widget _crearPantalla(int index) {
+    switch (index) {
+      case 0:
+        return DashboardScreen(onNavigate: cambiarPagina);
+      case 1:
+        return InventarioScreen(key: UniqueKey());
+      case 2:
+        return CategoriasScreen(key: UniqueKey());
+      case 3:
+        return const AgregarProductoScreen();
+      default:
+        return const SizedBox.shrink();
+    }
   }
   Future<void> _cerrarSesion() async {
     await AuthService().logout();
@@ -38,203 +74,14 @@ class _HomeScreenState extends State<HomeScreen> {
       (route) => false,
     );
   }
-  void mostrarFormularioNuevoProducto() {
-    final formKey = GlobalKey<FormState>();
-    final nombreController = TextEditingController();
-    final codigoController = TextEditingController();
-    final precioController = TextEditingController();
-    final cantidadController = TextEditingController();
-    String? categoriaSeleccionada;
-    final List<String> categorias = [
-      'Cuadernos',
-      'Papelería',
-      'Lápices',
-      'Arte',
-      'Oficina',
-      'Tecnología',
-    ];
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (bottomSheetContext) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-              ),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8F5F0),
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(25),
-                ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Indicador superior
-                        Center(
-                          child: Container(
-                            width: 45,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade400,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Nuevo producto',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        // Nombre
-                        CampoTexto(
-                          label: 'Nombre',
-                          icono: Icons.inventory,
-                          controlador: nombreController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Ingrese el nombre';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 15),
-                        // Código
-                        CampoTexto(
-                          label: 'Código',
-                          icono: Icons.qr_code,
-                          controlador: codigoController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Ingrese el código';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 15),
-                        // Categoría
-                        DropdownButtonFormField<String>(
-                          value: categoriaSeleccionada,
-                          decoration: InputDecoration(
-                            labelText: 'Categoría',
-                            prefixIcon: const Icon(Icons.category),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                          items: categorias.map((categoria) {
-                            return DropdownMenuItem<String>(
-                              value: categoria,
-                              child: Text(categoria),
-                            );
-                          }).toList(),
-                          onChanged: (valor) {
-                            setModalState(() {
-                              categoriaSeleccionada = valor;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Seleccione una categoría';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 15),
-                        // Precio
-                        CampoTexto(
-                          label: 'Precio',
-                          icono: Icons.attach_money,
-                          controlador: precioController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Ingrese el precio';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 15),
-                        // Cantidad
-                        CampoTexto(
-                          label: 'Cantidad',
-                          icono: Icons.numbers,
-                          controlador: cantidadController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Ingrese la cantidad';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        // Guardar
-                        BotonPrincipal(
-                          texto: 'Guardar Producto',
-                          onPressed: () {
-                            if (formKey.currentState!.validate()) {
-                              Navigator.pop(bottomSheetContext);
-                              SnackBarHelper.mostrarConAccion(
-                                this.context,
-                                mensaje:
-                                    '${nombreController.text} preparado para agregar',
-                                onVer: () => cambiarPagina(1),
-                              );
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        // Cancelar
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(bottomSheetContext);
-                          },
-                          child: const Text(
-                            'Cancelar',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+
+  Future<void> _abrirFormularioNuevoProducto() async {
+    await Navigator.pushNamed(context, '/agregar-producto');
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pantallas = [
-      DashboardScreen(
-        onNavigate: cambiarPagina,
-      ),
-      const InventarioScreen(),
-      const CategoriasScreen(),
-      const AgregarProductoScreen(),
-    ];
+    _pantallas[0] ??= _crearPantalla(0);
     return Scaffold(
       appBar: AppBar(
         title: const Text('LNE Stock'),
@@ -321,42 +168,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(context);
               },
             ),
-            ExpansionTile(
+            ListTile(
               leading: const Icon(Icons.category),
               title: const Text('Categorías'),
-              children: [
-                ListTile(
-                  contentPadding:
-                      const EdgeInsets.only(left: 70),
-                  leading: const Icon(Icons.school),
-                  title: const Text('Útiles escolares'),
-                  onTap: () {
-                    cambiarPagina(2);
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  contentPadding:
-                      const EdgeInsets.only(left: 70),
-                  leading: const Icon(Icons.edit),
-                  title: const Text('Papelería'),
-                  onTap: () {
-                    cambiarPagina(2);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-            ListTile(
-              leading: const Icon(Icons.add_box),
-              title: const Text('Agregar producto'),
-              selected: paginaActual == 3,
+              selected: paginaActual == 2,
               selectedColor: AppColors.primary,
               onTap: () {
-                cambiarPagina(3);
+                cambiarPagina(2);
                 Navigator.pop(context);
               },
             ),
+            if (_esAdmin)
+              ListTile(
+                leading: const Icon(Icons.add_box),
+                title: const Text('Agregar producto'),
+                selected: paginaActual == 3,
+                selectedColor: AppColors.primary,
+                onTap: () {
+                  cambiarPagina(3);
+                  Navigator.pop(context);
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text('Estadísticas'),
@@ -369,6 +201,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            if (_esAdmin)
+              ListTile(
+                leading: const Icon(Icons.swap_vert),
+                title: const Text('Movimientos'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/movimientos');
+                },
+              ),
             const Divider(),
             ListTile(
               leading: const Icon(
@@ -390,7 +231,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       body: IndexedStack(
         index: paginaActual,
-        children: pantallas,
+        children: [
+          for (final pantalla in _pantallas)
+            pantalla ?? const SizedBox.shrink(),
+        ],
       ),
 
       bottomNavigationBar: BottomNavigationBar(
@@ -402,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         elevation: 8,
 
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
@@ -421,20 +265,23 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Categorías',
           ),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_outlined),
-            activeIcon: Icon(Icons.add_box),
-            label: 'Agregar',
-          ),
+          if (_esAdmin)
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.add_box_outlined),
+              activeIcon: Icon(Icons.add_box),
+              label: 'Agregar',
+            ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: mostrarFormularioNuevoProducto,
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
+      floatingActionButton: _esAdmin
+          ? FloatingActionButton.extended(
+              onPressed: _abrirFormularioNuevoProducto,
+              icon: const Icon(Icons.add),
+              label: const Text('Nuevo'),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            )
+          : null,
     );
   }
 }

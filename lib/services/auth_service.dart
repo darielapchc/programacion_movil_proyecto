@@ -26,6 +26,7 @@ class AuthService {
     );
 
     await api.storage.saveToken(token);
+    await api.storage.saveRole(user.role);
     return AuthResult(token, user);
   }
 
@@ -45,7 +46,31 @@ class AuthService {
 
   Future<Usuario> me() async {
     final response = await api.get('/auth/me');
-    return Usuario.fromJson(responsePayload(response.data));
+    final usuario = _usuarioFromResponse(response.data);
+    await api.storage.saveRole(usuario.role);
+    return usuario;
+  }
+
+  Future<Usuario> updateMe({
+    required String fullName,
+    required String email,
+  }) async {
+    final response = await api.put(
+      '/auth/me',
+      data: {
+        'fullName': fullName,
+        'email': email,
+      },
+    );
+    return _usuarioFromResponse(response.data);
+  }
+
+  Usuario _usuarioFromResponse(dynamic data) {
+    final payload = responsePayload(data);
+    final userData = payload is Map && payload['user'] is Map
+        ? payload['user']
+        : payload;
+    return Usuario.fromJson((userData as Map).cast<String, dynamic>());
   }
 
   Future<void> logout() async {

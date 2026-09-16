@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-
 import '../core/api_client.dart';
 import '../models/producto.dart';
+import '../services/favorite_service.dart';
 import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/producto_card.dart';
+import '../utils/product_icon_mapper.dart';
 
 class InventarioScreen extends StatefulWidget {
   const InventarioScreen({super.key});
@@ -19,17 +20,19 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   bool mostrarGrid = false;
   bool _cargando = true;
+  bool _esAdmin = false;
   String? _error;
   final ProductoService _productoService = ProductoService();
+  final FavoriteService _favoriteService = FavoriteService();
 
   final List<Map<String, dynamic>> productos = [
     /* Datos cargados desde la API en initState. */
   ];
-
+  
   List<Map<String, dynamic>> productosFiltrados = [];
 
   // Productos marcados como favoritos.
-  final Set<String> productosFavoritos = {};
+  final Set<int> productosFavoritos = {};
 
   @override
   void initState() {
@@ -45,14 +48,25 @@ class _InventarioScreenState extends State<InventarioScreen> {
     });
 
     try {
+      final role = await ApiClient.instance.storage.getRole();
+      if (mounted) setState(() => _esAdmin = role?.toLowerCase() == 'admin');
       final data = await _productoService.listarProductos();
+      Set<int> favoritos = {};
+      try {
+        favoritos = await _favoriteService.listarIds();
+      } on ApiException catch (error) {
+        if (mounted) _mostrarSnackBar(mensaje: error.message);
+      }
       if (!mounted) return;
 
       setState(() {
         productos
           ..clear()
           ..addAll(data.map(_productoAmap));
-        productosFiltrados = List.from(productos);
+        productosFavoritos
+          ..clear()
+          ..addAll(favoritos);
+        productosFiltrados = _filtrarYOrdenar();
         _cargando = false;
       });
     } on ApiException catch (error) {
@@ -83,44 +97,90 @@ class _InventarioScreenState extends State<InventarioScreen> {
     return Producto.fromJson(producto);
   }
 
-  void _verDetalleProducto(Map<String, dynamic> producto) {
+  Future<void> _verDetalleProducto(Map<String, dynamic> producto) async {
     final Producto productoModelo =
         _convertirAProducto(producto);
-    Navigator.pushNamed(
+    final actualizado = await Navigator.pushNamed(
       context,
       '/detalle',
       arguments: productoModelo,
     );
+
+    if (!mounted || actualizado is! Producto) return;
+
+    setState(() {
+      final index = productos.indexWhere((item) => item['id'] == actualizado.id);
+      if (index == -1) return;
+      productos[index] = _productoAmap(actualizado);
+    });
+    _buscarProducto();
   }
 
   void _buscarProducto() {
-    final texto = buscadorController.text.toLowerCase();
     setState(() {
-      productosFiltrados = productos.where((producto) {
-        final nombre =
-            producto['nombre'].toString().toLowerCase();
-
-        final codigo =
-            producto['codigo'].toString().toLowerCase();
-
-        final categoria =
-            producto['categoria'].toString().toLowerCase();
-
-        return nombre.contains(texto) ||
-            codigo.contains(texto) ||
-            categoria.contains(texto);
-      }).toList();
+      productosFiltrados = _filtrarYOrdenar();
     });
   }
 
-  void _alternarFavorito(String codigo) {
-    setState(() {
-      if (productosFavoritos.contains(codigo)) {
-        productosFavoritos.remove(codigo);
-      } else {
-        productosFavoritos.add(codigo);
+  List<Map<String, dynamic>> _filtrarYOrdenar() {
+    final texto = buscadorController.text.toLowerCase();
+
+    final filtrados = productos.where((producto) {
+      final nombre = producto['nombre'].toString().toLowerCase();
+      final codigo = producto['codigo'].toString().toLowerCase();
+      final categoria = producto['categoria'].toString().toLowerCase();
+
+      return nombre.contains(texto) ||
+          codigo.contains(texto) ||
+          categoria.contains(texto);
+    }).toList();
+
+    filtrados.sort((a, b) {
+      final favoritoA = productosFavoritos.contains(a['id']);
+      final favoritoB = productosFavoritos.contains(b['id']);
+
+      if (favoritoA != favoritoB) {
+        return favoritoA ? -1 : 1;
       }
+
+      return a['nombre']
+          .toString()
+          .toLowerCase()
+          .compareTo(b['nombre'].toString().toLowerCase());
     });
+
+    return filtrados;
+  }
+
+  Future<void> _alternarFavorito(int productoId) async {
+    final estabaMarcado = productosFavoritos.contains(productoId);
+    setState(() {
+      if (estabaMarcado) {
+        productosFavoritos.remove(productoId);
+      } else {
+        productosFavoritos.add(productoId);
+      }
+      productosFiltrados = _filtrarYOrdenar();
+    });
+
+    try {
+      if (estabaMarcado) {
+        await _favoriteService.eliminar(productoId);
+      } else {
+        await _favoriteService.agregar(productoId);
+      }
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        if (estabaMarcado) {
+          productosFavoritos.add(productoId);
+        } else {
+          productosFavoritos.remove(productoId);
+        }
+        productosFiltrados = _filtrarYOrdenar();
+      });
+      _mostrarSnackBar(mensaje: error.message);
+    }
   }
 
   Future<void> _mostrarDialogoEliminar(
@@ -170,7 +230,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
       if (!mounted) return;
       setState(() {
         productos.removeWhere((item) => item['codigo'] == codigo);
-        productosFavoritos.remove(codigo);
+        productosFavoritos.remove(producto['id'] as int);
 
         final texto = buscadorController.text.toLowerCase();
         productosFiltrados = productos.where((item) {
@@ -219,8 +279,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
       itemBuilder: (context, index) {
         final producto = productosFiltrados[index];
         final String codigo = producto['codigo'];
+        final int productoId = producto['id'] as int;
         final bool esFavorito =
-            productosFavoritos.contains(codigo);
+          productosFavoritos.contains(productoId);
         return Dismissible(
           key: ValueKey(codigo),
           // Swipe hacia la derecha.
@@ -250,35 +311,35 @@ class _InventarioScreenState extends State<InventarioScreen> {
               ],
             ),
           ),
-          secondaryBackground: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            alignment: Alignment.centerRight,
-            child: const Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.end,
-              children: [
-                Text(
-                  'Eliminar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+          secondaryBackground: _esAdmin
+              ? Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                ),
-                SizedBox(width: 8),
-                Icon(
-                  Icons.delete,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ),
+                  alignment: Alignment.centerRight,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Eliminar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.delete, color: Colors.white),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
           confirmDismiss: (direction) async {
+            if (!_esAdmin && direction == DismissDirection.endToStart) {
+              return false;
+            }
             if (direction ==
                 DismissDirection.startToEnd) {
               _mostrarSnackBar(
@@ -294,16 +355,16 @@ class _InventarioScreenState extends State<InventarioScreen> {
             return false;
           },
           child: GestureDetector(
-            onLongPress: () {
-              _mostrarDialogoEliminar(
-                context,
-                producto,
-              );
-            },
+            onLongPress: _esAdmin
+                ? () {
+                    _mostrarDialogoEliminar(context, producto);
+                  }
+                : null,
             child: ProductoCard(
               nombre: producto['nombre'],
               codigo: producto['codigo'],
               categoria: producto['categoria'],
+              icono: producto['imagen'] ?? '',
               precio: producto['precio'],
               cantidad: producto['cantidad'],
               esFavorito: esFavorito,
@@ -311,7 +372,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                 _verDetalleProducto(producto);
               },
               onFavorite: () {
-                _alternarFavorito(codigo);
+                _alternarFavorito(productoId);
               },
               mostrarEstado: true,
               colorAccento: AppColors.primary,
@@ -341,20 +402,18 @@ class _InventarioScreenState extends State<InventarioScreen> {
           itemBuilder: (context, index) {
             final producto =
                 productosFiltrados[index];
-            final String codigo =
-                producto['codigo'];
+            final int productoId = producto['id'] as int;
             final bool esFavorito =
-                productosFavoritos.contains(codigo);
+              productosFavoritos.contains(productoId);
             return GestureDetector(
               onTap: () {
                 _verDetalleProducto(producto);
               },
-              onLongPress: () {
-                _mostrarDialogoEliminar(
-                  context,
-                  producto,
-                );
-              },
+              onLongPress: _esAdmin
+                  ? () {
+                      _mostrarDialogoEliminar(context, producto);
+                    }
+                  : null,
               child: Card(
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -380,16 +439,17 @@ class _InventarioScreenState extends State<InventarioScreen> {
                               14,
                             ),
                           ),
-                          child: const FittedBox(
+                          child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Icon(
-                              Icons
-                                  .inventory_2_outlined,
+                              ProductIconMapper.getIcon(
+                                producto['imagen']?.toString(),
+                              ),
                               size: 55,
-                              color:
-                                  AppColors.primary,
+                              color: AppColors.primary,
                             ),
                           ),
+
                         ),
                       ),
                       const SizedBox(height: 10),

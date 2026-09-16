@@ -10,6 +10,7 @@ class Producto {
   final String imagen;
   final int? categoriaId;
   final Categorias? categoria;
+  final String categoriaNombreTexto;
 
   const Producto({
     required this.id,
@@ -21,10 +22,16 @@ class Producto {
     this.imagen = '',
     this.categoriaId,
     this.categoria,
+    this.categoriaNombreTexto = '',
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
     final rawCategory = json['categoria'];
+    final category = rawCategory is Map
+        ? Categorias.fromJson(rawCategory.cast<String, dynamic>())
+        : null;
+    final categoryName = rawCategory is String ? rawCategory : null;
+    final rawCategoryId = json['categoriaId'] ?? json['idCategoria'];
 
     return Producto(
       id: _toInt(json['id']),
@@ -34,12 +41,9 @@ class Producto {
       precio: _toDouble(json['precio']),
       stock: _toInt(json['stock'] ?? json['cantidad']),
       imagen: '${json['imagen'] ?? ''}',
-      categoriaId: json['categoriaId'] == null && json['idCategoria'] == null
-          ? null
-          : _toInt(json['categoriaId'] ?? json['idCategoria']),
-      categoria: rawCategory is Map
-          ? Categorias.fromJson(rawCategory.cast<String, dynamic>())
-          : null,
+      categoriaId: rawCategoryId == null ? category?.id : _toInt(rawCategoryId),
+      categoria: category,
+      categoriaNombreTexto: categoryName ?? '',
     );
   }
 
@@ -56,7 +60,7 @@ class Producto {
   }
 
   int get cantidad => stock;
-  String get categoriaNombre => categoria?.nombre ?? '';
+  String get categoriaNombre => categoria?.nombre ?? categoriaNombreTexto;
 }
 
 int _toInt(dynamic value) {

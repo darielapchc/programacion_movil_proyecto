@@ -22,6 +22,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Producto> _productos = [];
   bool _cargando = true;
+  bool _esAdmin = false;
   @override
   void initState() {
     super.initState();
@@ -30,6 +31,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _cargar() async {
     try {
+      final role = await ApiClient.instance.storage.getRole();
+      if (mounted) setState(() => _esAdmin = role?.toLowerCase() == 'admin');
       final data = await ProductoService().listarProductos();
       if (!mounted) return;
 
@@ -45,6 +48,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    final stockTotal = _productos.fold<int>(
+      0,
+      (total, producto) => total + producto.stock,
+    );
+    final productosStockBajo =
+        _productos.where((producto) => producto.stock < 10).length;
+
     return SafeArea(
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -124,8 +134,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       child: _estadisticaCard(
                         icono: Icons.inventory_2,
-                        titulo: 'Productos',
-                        cantidad: _cargando ? '…' : '${_productos.length}',
+                        titulo: 'Stock total',
+                        cantidad: _cargando ? '…' : '$stockTotal',
                       ),
                     ),
 
@@ -135,14 +145,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: _estadisticaCard(
                         icono: Icons.warning_amber_rounded,
                         titulo: 'Stock bajo',
-                        cantidad: _cargando ? '…' : '${_productos.where((p) => p.stock < 10).length}',
+                        cantidad: _cargando ? '…' : '$productosStockBajo',
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 StockStatusWidget(
-                  cantidad: _productos.where((p) => p.stock < 10).length,
+                  cantidad: stockTotal,
                   stockMinimo: 10,
                   titulo: 'Resumen del stock',
                 ),
@@ -184,14 +194,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
 
-                    // AGREGAR
-                    MenuCard(
-                      titulo: 'Agregar',
-                      icono: Icons.add_box,
-                      onTap: () {
-                        widget.onNavigate?.call(3);
-                      },
-                    ),
+                    if (_esAdmin)
+                      MenuCard(
+                        titulo: 'Agregar',
+                        icono: Icons.add_box,
+                        onTap: () {
+                          widget.onNavigate?.call(3);
+                        },
+                      ),
 
                     // ESTADÍSTICAS
                     MenuCard(
@@ -204,6 +214,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       },
                     ),
+
+                    if (_esAdmin)
+                      MenuCard(
+                        titulo: 'Movimientos',
+                        icono: Icons.swap_vert,
+                        onTap: () {
+                          Navigator.pushNamed(context, '/movimientos');
+                        },
+                      ),
                   ],
                 ),
               ],
