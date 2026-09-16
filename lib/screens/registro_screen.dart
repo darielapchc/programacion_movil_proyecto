@@ -92,8 +92,9 @@ class _RegistroScreenState extends State<RegistroScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                if (!mounted) return;
                 Navigator.pushReplacementNamed(
-                  context,
+                  this.context,
                   '/login',
                 );
               },

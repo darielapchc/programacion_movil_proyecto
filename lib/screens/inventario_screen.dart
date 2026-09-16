@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../models/producto.dart';
+import '../services/favorite_service.dart';
 import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/producto_card.dart';
@@ -19,8 +20,10 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   bool mostrarGrid = false;
   bool _cargando = true;
+  bool _esAdmin = false;
   String? _error;
   final ProductoService _productoService = ProductoService();
+  final FavoriteService _favoriteService = FavoriteService();
 
   final List<Map<String, dynamic>> productos = [
     /* Datos cargados desde la API en initState. */
@@ -29,7 +32,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
   List<Map<String, dynamic>> productosFiltrados = [];
 
   // Productos marcados como favoritos.
-  final Set<String> productosFavoritos = {};
+  final Set<int> productosFavoritos = {};
 
   @override
   void initState() {
@@ -45,7 +48,15 @@ class _InventarioScreenState extends State<InventarioScreen> {
     });
 
     try {
+      final role = await ApiClient.instance.storage.getRole();
+      if (mounted) setState(() => _esAdmin = role?.toLowerCase() == 'admin');
       final data = await _productoService.listarProductos();
+      Set<int> favoritos = {};
+      try {
+        favoritos = await _favoriteService.listarIds();
+      } on ApiException catch (error) {
+        if (mounted) _mostrarSnackBar(mensaje: error.message);
+      }
       if (!mounted) return;
 
       setState(() {
@@ -53,6 +64,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
           ..clear()
           ..addAll(data.map(_productoAmap));
         productosFiltrados = List.from(productos);
+        productosFavoritos
+          ..clear()
+          ..addAll(favoritos);
         _cargando = false;
       });
     } on ApiException catch (error) {
@@ -122,14 +136,33 @@ class _InventarioScreenState extends State<InventarioScreen> {
     });
   }
 
-  void _alternarFavorito(String codigo) {
+  Future<void> _alternarFavorito(int productoId) async {
+    final estabaMarcado = productosFavoritos.contains(productoId);
     setState(() {
-      if (productosFavoritos.contains(codigo)) {
-        productosFavoritos.remove(codigo);
+      if (estabaMarcado) {
+        productosFavoritos.remove(productoId);
       } else {
-        productosFavoritos.add(codigo);
+        productosFavoritos.add(productoId);
       }
     });
+
+    try {
+      if (estabaMarcado) {
+        await _favoriteService.eliminar(productoId);
+      } else {
+        await _favoriteService.agregar(productoId);
+      }
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        if (estabaMarcado) {
+          productosFavoritos.add(productoId);
+        } else {
+          productosFavoritos.remove(productoId);
+        }
+      });
+      _mostrarSnackBar(mensaje: error.message);
+    }
   }
 
   Future<void> _mostrarDialogoEliminar(
@@ -179,7 +212,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
       if (!mounted) return;
       setState(() {
         productos.removeWhere((item) => item['codigo'] == codigo);
-        productosFavoritos.remove(codigo);
+        productosFavoritos.remove(producto['id'] as int);
 
         final texto = buscadorController.text.toLowerCase();
         productosFiltrados = productos.where((item) {
@@ -228,8 +261,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
       itemBuilder: (context, index) {
         final producto = productosFiltrados[index];
         final String codigo = producto['codigo'];
+        final int productoId = producto['id'] as int;
         final bool esFavorito =
-            productosFavoritos.contains(codigo);
+          productosFavoritos.contains(productoId);
         return Dismissible(
           key: ValueKey(codigo),
           // Swipe hacia la derecha.
@@ -259,35 +293,35 @@ class _InventarioScreenState extends State<InventarioScreen> {
               ],
             ),
           ),
-          secondaryBackground: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            alignment: Alignment.centerRight,
-            child: const Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.end,
-              children: [
-                Text(
-                  'Eliminar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+          secondaryBackground: _esAdmin
+              ? Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                ),
-                SizedBox(width: 8),
-                Icon(
-                  Icons.delete,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ),
+                  alignment: Alignment.centerRight,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Eliminar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.delete, color: Colors.white),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
           confirmDismiss: (direction) async {
+            if (!_esAdmin && direction == DismissDirection.endToStart) {
+              return false;
+            }
             if (direction ==
                 DismissDirection.startToEnd) {
               _mostrarSnackBar(
@@ -303,12 +337,11 @@ class _InventarioScreenState extends State<InventarioScreen> {
             return false;
           },
           child: GestureDetector(
-            onLongPress: () {
-              _mostrarDialogoEliminar(
-                context,
-                producto,
-              );
-            },
+            onLongPress: _esAdmin
+                ? () {
+                    _mostrarDialogoEliminar(context, producto);
+                  }
+                : null,
             child: ProductoCard(
               nombre: producto['nombre'],
               codigo: producto['codigo'],
@@ -321,7 +354,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                 _verDetalleProducto(producto);
               },
               onFavorite: () {
-                _alternarFavorito(codigo);
+                _alternarFavorito(productoId);
               },
               mostrarEstado: true,
               colorAccento: AppColors.primary,
@@ -351,20 +384,18 @@ class _InventarioScreenState extends State<InventarioScreen> {
           itemBuilder: (context, index) {
             final producto =
                 productosFiltrados[index];
-            final String codigo =
-                producto['codigo'];
+            final int productoId = producto['id'] as int;
             final bool esFavorito =
-                productosFavoritos.contains(codigo);
+              productosFavoritos.contains(productoId);
             return GestureDetector(
               onTap: () {
                 _verDetalleProducto(producto);
               },
-              onLongPress: () {
-                _mostrarDialogoEliminar(
-                  context,
-                  producto,
-                );
-              },
+              onLongPress: _esAdmin
+                  ? () {
+                      _mostrarDialogoEliminar(context, producto);
+                    }
+                  : null,
               child: Card(
                 elevation: 3,
                 shape: RoundedRectangleBorder(

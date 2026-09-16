@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../models/categorias.dart';
 import '../models/producto.dart';
+import '../services/favorite_service.dart';
 import '../services/producto_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/producto_card.dart';
@@ -21,7 +22,8 @@ class ProductosCategoriaScreen extends StatefulWidget {
 
 class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
   final ProductoService _productoService = ProductoService();
-  final Set<String> _productosFavoritos = {};
+  final FavoriteService _favoriteService = FavoriteService();
+  final Set<int> _productosFavoritos = {};
 
   List<Producto> _productos = [];
   bool _cargando = true;
@@ -41,12 +43,21 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
 
     try {
       final productos = await _productoService.listarProductos();
+      Set<int> favoritos = {};
+      try {
+        favoritos = await _favoriteService.listarIds();
+      } on ApiException catch (error) {
+        if (mounted) _mostrarError(error.message);
+      }
       if (!mounted) return;
 
       setState(() {
         _productos = productos
             .where((producto) => producto.categoriaId == widget.categoria.id)
             .toList();
+        _productosFavoritos
+          ..clear()
+          ..addAll(favoritos);
         _cargando = false;
       });
     } on ApiException catch (error) {
@@ -76,12 +87,39 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
     });
   }
 
-  void _alternarFavorito(Producto producto) {
+  Future<void> _alternarFavorito(Producto producto) async {
+    final estabaMarcado = _productosFavoritos.contains(producto.id);
     setState(() {
-      if (!_productosFavoritos.add(producto.codigo)) {
-        _productosFavoritos.remove(producto.codigo);
+      if (estabaMarcado) {
+        _productosFavoritos.remove(producto.id);
+      } else {
+        _productosFavoritos.add(producto.id);
       }
     });
+
+    try {
+      if (estabaMarcado) {
+        await _favoriteService.eliminar(producto.id);
+      } else {
+        await _favoriteService.agregar(producto.id);
+      }
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        if (estabaMarcado) {
+          _productosFavoritos.add(producto.id);
+        } else {
+          _productosFavoritos.remove(producto.id);
+        }
+      });
+      _mostrarError(error.message);
+    }
+  }
+
+  void _mostrarError(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(mensaje)),
+    );
   }
 
   @override
@@ -174,7 +212,7 @@ class _ProductosCategoriaScreenState extends State<ProductosCategoriaScreen> {
               : producto.categoriaNombre,
           icono: producto.imagen,
           precio: producto.precio,
-          esFavorito: _productosFavoritos.contains(producto.codigo),
+          esFavorito: _productosFavoritos.contains(producto.id),
           onTap: () => _verDetalleProducto(producto),
           onFavorite: () => _alternarFavorito(producto),
           mostrarEstado: true,

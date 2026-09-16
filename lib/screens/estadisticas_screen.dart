@@ -20,6 +20,9 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   List<Producto> _productos = [];
   List<MovimientoInventario> _movimientos = [];
   bool _cargando = true;
+  bool _productosCargados = false;
+  bool _movimientosCargados = false;
+  String? _error;
   @override
   void initState() {
     super.initState();
@@ -27,23 +30,45 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   }
 
   Future<void> _cargar() async {
-    try {
-      final results = await Future.wait([
-        ProductoService().listarProductos(),
-        MovimientoService().listarMovimientos(),
-      ]);
-      if (!mounted) return;
-
+    if (mounted) {
       setState(() {
-        _productos = results[0] as List<Producto>;
-        _movimientos = results[1] as List<MovimientoInventario>;
-        _cargando = false;
+        _cargando = true;
+        _error = null;
       });
-    } on ApiException {
-      if (mounted) {
-        setState(() => _cargando = false);
-      }
     }
+
+    String? productosError;
+    String? movimientosError;
+    List<Producto> productos = [];
+    List<MovimientoInventario> movimientos = [];
+
+    try {
+      productos = await ProductoService().listarProductos();
+    } on ApiException catch (error) {
+      productosError = error.message;
+    }
+
+    try {
+      movimientos = await MovimientoService().listarMovimientos();
+    } on ApiException catch (error) {
+      movimientosError = error.message;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _productos = productos;
+      _movimientos = movimientos;
+      _productosCargados = productosError == null;
+      _movimientosCargados = movimientosError == null;
+      _error = [productosError, movimientosError]
+          .whereType<String>()
+          .join('\n');
+      _cargando = false;
+    });
+  }
+
+  String _cantidad(int valor, bool cargado) {
+    return cargado ? '$valor' : '—';
   }
 
   int _movimientosDe(String tipo) {
@@ -76,6 +101,10 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_error != null && _error!.isNotEmpty) ...[
+              _mensajeError(),
+              const SizedBox(height: 16),
+            ],
 
             const Text(
               'Resumen del inventario',
@@ -106,7 +135,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   child: _estadisticaCard(
                     icono: Icons.inventory_2,
                     titulo: 'Productos',
-                    cantidad: _cargando ? '…' : '${_productos.length}',
+                    cantidad: _cargando ? '…' : _cantidad(_productos.length, _productosCargados),
                   ),
                 ),
 
@@ -116,7 +145,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   child: _estadisticaCard(
                     icono: Icons.warning_amber_rounded,
                     titulo: 'Stock bajo',
-                    cantidad: _cargando ? '…' : '${_productos.where((p) => p.stock < 10).length}',
+                    cantidad: _cargando ? '…' : _cantidad(_productos.where((p) => p.stock < 10).length, _productosCargados),
                   ),
                 ),
               ],
@@ -132,7 +161,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   child: _estadisticaCard(
                     icono: Icons.arrow_downward,
                     titulo: 'Entradas',
-                    cantidad: _cargando ? '…' : '$entradas',
+                    cantidad: _cargando ? '…' : _cantidad(entradas, _movimientosCargados),
                   ),
                 ),
 
@@ -142,7 +171,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                   child: _estadisticaCard(
                     icono: Icons.arrow_upward,
                     titulo: 'Salidas',
-                    cantidad: _cargando ? '…' : '$salidas',
+                    cantidad: _cargando ? '…' : _cantidad(salidas, _movimientosCargados),
                   ),
                 ),
               ],
@@ -161,7 +190,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
             const SizedBox(height: 15),
 
-            Card(
+            if (_movimientosCargados)
+              Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
@@ -281,6 +311,24 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                 color: Color(0xFF5F5F5F),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _mensajeError() {
+    return Card(
+      color: AppColors.danger.withOpacity(0.08),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.danger),
+            const SizedBox(width: 10),
+            Expanded(child: Text(_error!)),
+            TextButton(onPressed: _cargar, child: const Text('Reintentar')),
           ],
         ),
       ),

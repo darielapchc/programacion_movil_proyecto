@@ -26,6 +26,7 @@ class AuthService {
     );
 
     await api.storage.saveToken(token);
+    await api.storage.saveRole(user.role);
     return AuthResult(token, user);
   }
 
@@ -45,7 +46,9 @@ class AuthService {
 
   Future<Usuario> me() async {
     final response = await api.get('/auth/me');
-    return _usuarioFromResponse(response.data);
+    final usuario = _usuarioFromResponse(response.data);
+    await api.storage.saveRole(usuario.role);
+    return usuario;
   }
 
   Future<Usuario> updateMe({

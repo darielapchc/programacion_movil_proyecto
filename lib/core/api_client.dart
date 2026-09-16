@@ -72,6 +72,13 @@ class ApiClient {
   }
 
   String _messageFor(DioException error) {
+    final detail = _serverDetail(error.response?.data);
+    final status = error.response?.statusCode;
+
+    if (detail != null && detail.isNotEmpty) {
+      return status == null ? detail : 'Error HTTP $status: $detail';
+    }
+
     if (error.type == DioExceptionType.connectionError) {
       return 'No se pudo conectar con el servidor.';
     }
@@ -100,6 +107,18 @@ class ApiClient {
       default:
         return 'No se pudo completar la solicitud.';
     }
+  }
+
+  String? _serverDetail(dynamic data) {
+    if (data is String && data.trim().isNotEmpty) return data.trim();
+    if (data is! Map) return null;
+
+    for (final key in ['message', 'error', 'detail']) {
+      final value = data[key];
+      if (value is String && value.trim().isNotEmpty) return value.trim();
+      if (value is List && value.isNotEmpty) return value.join(', ');
+    }
+    return null;
   }
 }
 

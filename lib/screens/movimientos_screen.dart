@@ -22,6 +22,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   List<MovimientoInventario> _movimientos = [];
   List<Producto> _productos = [];
   bool _cargando = true;
+  bool _esAdmin = false;
   String? _error;
 
   @override
@@ -36,6 +37,8 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
       _error = null;
     });
     try {
+      final role = await ApiClient.instance.storage.getRole();
+      if (mounted) setState(() => _esAdmin = role?.toLowerCase() == 'admin');
       final resultados = await Future.wait([
         _movimientoService.listarMovimientos(),
         _productoService.listarProductos(),
@@ -211,6 +214,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   }
 
   Widget _accionesMovimiento() {
+    if (!_esAdmin) return const SizedBox.shrink();
     return Card(
       margin: EdgeInsets.zero,
       elevation: 1,
@@ -334,7 +338,7 @@ class _FormularioMovimientoState extends State<_FormularioMovimiento> {
     if (normalizado.contains('conectar') || normalizado.contains('servidor')) {
       return mensaje;
     }
-    return 'No se pudo registrar el movimiento.';
+    return mensaje;
   }
 
   @override

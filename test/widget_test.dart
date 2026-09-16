@@ -5,26 +5,28 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:inventario_application_1/main.dart';
+import 'package:inventario_application_1/models/producto.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('Producto.fromJson convierte los datos del inventario', () {
+    final producto = Producto.fromJson({
+      'id': 7,
+      'nombre': 'Cuaderno',
+      'codigo': 'CUA-001',
+      'precio': 42.5,
+      'stock': 12,
+      'imagen': 'menu_book',
+      'categoriaId': 3,
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(producto.id, 7);
+    expect(producto.nombre, 'Cuaderno');
+    expect(producto.codigo, 'CUA-001');
+    expect(producto.precio, 42.5);
+    expect(producto.stock, 12);
+    expect(producto.imagen, 'menu_book');
+    expect(producto.categoriaId, 3);
   });
 }

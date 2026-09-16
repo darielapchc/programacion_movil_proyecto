@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/api_client.dart';
 import '../models/usuario.dart';
 import '../services/auth_service.dart';
 import '../utils/app_colors.dart';
@@ -13,27 +14,15 @@ class PerfilScreen extends StatefulWidget {
 
 class _PerfilScreenState extends State<PerfilScreen> {
   final AuthService _authService = AuthService();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _correoController = TextEditingController();
 
   Usuario? _usuario;
   bool _cargando = true;
-  bool _guardando = false;
-  bool _editando = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
     _cargarPerfil();
-  }
-
-  @override
-  void dispose() {
-    _nombreController.dispose();
-    _correoController.dispose();
-    super.dispose();
   }
 
   Future<void> _cargarPerfil() async {
@@ -47,9 +36,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
       if (!mounted) return;
       setState(() {
         _usuario = usuario;
-        _nombreController.text = usuario.fullName;
-        _correoController.text = usuario.email;
         _cargando = false;
+      });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _cargando = false;
+        _error = error.message;
       });
     } catch (_) {
       if (!mounted) return;
@@ -57,43 +50,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
         _cargando = false;
         _error = 'No se pudo cargar el perfil.';
       });
-    }
-  }
-
-  void _iniciarEdicion() {
-    final usuario = _usuario;
-    if (usuario == null) return;
-    _nombreController.text = usuario.fullName;
-    _correoController.text = usuario.email;
-    setState(() => _editando = true);
-  }
-
-  Future<void> _guardarPerfil() async {
-    if (!_formKey.currentState!.validate() || _guardando) return;
-
-    setState(() => _guardando = true);
-    try {
-      final usuario = await _authService.updateMe(
-        fullName: _nombreController.text.trim(),
-        email: _correoController.text.trim(),
-      );
-      if (!mounted) return;
-      setState(() {
-        _usuario = usuario;
-        _editando = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil actualizado correctamente.')),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo actualizar el perfil. Intenta nuevamente.'),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _guardando = false);
     }
   }
 
@@ -142,7 +98,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     final usuario = _usuario!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
-      child: _editando ? _buildEditView(usuario) : _buildProfileView(usuario),
+      child: _buildProfileView(usuario),
     );
   }
 
@@ -190,11 +146,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
         _seccionTitulo('Opciones', Icons.settings_outlined),
         const SizedBox(height: 10),
         _opcionCard(
-          icono: Icons.edit,
-          titulo: 'Editar perfil',
-          onTap: _iniciarEdicion,
-        ),
-        _opcionCard(
           icono: Icons.settings,
           titulo: 'Configuración',
           onTap: () {
@@ -220,90 +171,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
         _buildLogoutButton(),
         const SizedBox(height: 20),
       ],
-    );
-  }
-
-  Widget _buildEditView(Usuario usuario) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const CircleAvatar(
-            radius: 55,
-            backgroundColor: AppColors.primary,
-            child: Icon(Icons.person, size: 60, color: Colors.white),
-          ),
-          const SizedBox(height: 30),
-          _seccionTitulo('Información personal', Icons.person_outline),
-          const SizedBox(height: 10),
-          TextFormField(
-            controller: _nombreController,
-            textInputAction: TextInputAction.next,
-            decoration: _inputDecoration('Nombre', Icons.person),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Ingresa tu nombre.';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 14),
-          TextFormField(
-            controller: _correoController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: _inputDecoration(
-              'Correo electrónico',
-              Icons.email_outlined,
-            ),
-            validator: (value) {
-              final correo = value?.trim() ?? '';
-              final esValido = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                  .hasMatch(correo);
-              if (!esValido) return 'Ingresa un correo válido.';
-              return null;
-            },
-          ),
-          const SizedBox(height: 14),
-          _informacionCard(
-            icono: Icons.badge_outlined,
-            titulo: 'Rol',
-            valor: usuario.role,
-          ),
-          const SizedBox(height: 20),
-          _guardando
-              ? const Center(child: CircularProgressIndicator())
-              : ElevatedButton(
-                  onPressed: _guardarPerfil,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Text(
-                    'Guardar',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-          TextButton(
-            onPressed: _guardando
-                ? null
-                : () => setState(() => _editando = false),
-            child: const Text('Cancelar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
     );
   }
 

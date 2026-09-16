@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/api_client.dart';
 import '../models/producto.dart';
 import '../utils/app_colors.dart';
 import '../utils/product_icon_mapper.dart';
@@ -17,6 +18,7 @@ class DetalleProductoScreen extends StatefulWidget {
 class _DetalleProductoScreenState
     extends State<DetalleProductoScreen> {
   late Producto producto;
+  bool _esAdmin = false;
 
   @override
   void didChangeDependencies() {
@@ -26,6 +28,9 @@ class _DetalleProductoScreenState
         ModalRoute.of(context)!
             .settings
             .arguments as Producto;
+    ApiClient.instance.storage.getRole().then((role) {
+      if (mounted) setState(() => _esAdmin = role?.toLowerCase() == 'admin');
+    });
   }
 
   Future<void> _editarProducto() async {
@@ -41,8 +46,24 @@ class _DetalleProductoScreenState
       return;
     }
 
+    final productoConStockActual = Producto(
+      id: producto.id,
+      nombre: productoActualizado.nombre,
+      descripcion: productoActualizado.descripcion,
+      codigo: productoActualizado.codigo,
+      precio: productoActualizado.precio,
+      stock: producto.stock,
+      imagen: productoActualizado.imagen,
+      categoriaId:
+          productoActualizado.categoriaId ?? producto.categoriaId,
+      categoria: productoActualizado.categoria ?? producto.categoria,
+      categoriaNombreTexto: productoActualizado.categoriaNombreTexto.isEmpty
+          ? producto.categoriaNombreTexto
+          : productoActualizado.categoriaNombreTexto,
+    );
+
     setState(() {
-      producto = productoActualizado;
+      producto = productoConStockActual;
     });
 
     ScaffoldMessenger.of(context)
@@ -293,7 +314,8 @@ class _DetalleProductoScreenState
             // EDITAR
             // =========================
 
-            SizedBox(
+            if (_esAdmin)
+              SizedBox(
               width: double.infinity,
               height: 50,
 
